@@ -202,3 +202,27 @@
     border-radius: var(--radius-lg);
   }
 }
+
+/* ============================================================
+   Phase 6 — Auth pages responsive additions
+   ============================================================ */
+
+/* On very short viewports (landscape phone) stop centering
+   vertically so the card is still fully accessible */
+@media (max-height: 600px) {
+  .auth-page {
+    align-items: flex-start;
+    padding-top: var(--space-6);
+  }
+}
+
+/* Extra narrow phones */
+@media (max-width: 360px) {
+  .auth-card {
+    padding: var(--space-4);
+  }
+
+  .auth-card__title {
+    font-size: var(--text-xl);
+  }
+}

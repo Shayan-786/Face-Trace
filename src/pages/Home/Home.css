@@ -244,3 +244,41 @@
     font-size: var(--text-2xl);
   }
 }
+
+/* ============================================================
+   Phase 6 — Home responsive additions
+   ============================================================ */
+
+/* Reduce tall section padding on mobile */
+@media (max-width: 600px) {
+  .home__about,
+  .home__features,
+  .home__cta {
+    padding: var(--space-12) 0;
+  }
+
+  /* Prevent hero subtitle overflow on very narrow screens */
+  .home__hero-subtitle {
+    font-size: var(--text-base);
+  }
+
+  /* CTA title size reduction */
+  .home__cta-title {
+    font-size: var(--text-xl);
+  }
+}
+
+@media (max-width: 360px) {
+  .home__hero {
+    padding: var(--space-8) 0 var(--space-6);
+  }
+
+  .home__hero-title {
+    letter-spacing: -0.5px;
+  }
+
+  /* Single-column badge wraps cleanly */
+  .home__hero-badge {
+    font-size: 0.65rem;
+  }
+}

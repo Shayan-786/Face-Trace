@@ -112,3 +112,32 @@
     padding: var(--space-4);
   }
 }
+
+/* ============================================================
+   Phase 6 — DashboardLayout responsive additions
+   ============================================================ */
+
+/* Extra-small phones — tighter content padding */
+@media (max-width: 400px) {
+  .dashboard-layout__main {
+    padding: var(--space-3);
+  }
+}
+
+/* Prevent sidebar from being wider than viewport on tiny screens */
+@media (max-width: 320px) {
+  .dashboard-layout__sidebar-wrapper {
+    width: 100vw;
+  }
+}
+
+/* Landscape orientation — reduce top bar height slightly */
+@media (max-height: 500px) and (max-width: 900px) {
+  .dashboard-layout__topbar {
+    height: 48px;
+  }
+
+  .dashboard-layout__main {
+    padding: var(--space-3) var(--space-4);
+  }
+}

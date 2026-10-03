@@ -434,3 +434,63 @@
     padding: var(--space-8) var(--space-4);
   }
 }
+
+/* ============================================================
+   Phase 6 — Analyze page responsive additions
+   ============================================================ */
+
+/* Sticky action panel on desktop so it stays visible
+   while user scrolls through preview on the left */
+@media (min-width: 901px) {
+  .analyze__right {
+    position: sticky;
+    top: var(--space-8);
+  }
+}
+
+/* Mid-range: right column goes full-width above left */
+@media (max-width: 900px) {
+  .analyze__right {
+    order: -1;        /* action panel appears above drop zone */
+    position: static; /* no sticky needed when stacked */
+  }
+}
+
+/* Narrow phones — reduce drop zone height */
+@media (max-width: 480px) {
+  .dropzone {
+    padding: var(--space-8) var(--space-4);
+    gap: var(--space-2);
+  }
+
+  .dropzone__primary {
+    font-size: var(--text-base);
+  }
+
+  /* Video preview — cap height on small screens */
+  .analyze__video-wrap,
+  .analyze__video {
+    max-height: 220px;
+  }
+
+  /* Result metrics tighter spacing */
+  .result-metrics {
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 360px) {
+  .analyze__title {
+    font-size: var(--text-xl);
+  }
+
+  .file-info {
+    gap: var(--space-2);
+  }
+
+  .file-info__icon {
+    width: 36px;
+    height: 36px;
+  }
+}
