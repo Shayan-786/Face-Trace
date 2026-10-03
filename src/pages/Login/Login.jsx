@@ -1,50 +1,60 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, ScanFace, AlertCircle } from 'lucide-react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Mail, Lock, Eye, EyeOff, ScanFace, AlertCircle, Info } from 'lucide-react'
 import Button from '../../components/Button/Button'
+import { login } from '../../services/auth'
 import './Login.css'
 
 /**
- * Login page — frontend-only for now.
- * Form state and basic validation are wired up and ready for
- * Flask API integration (src/services/api.js → loginUser()).
+ * Login page.
+ *
+ * Auth is currently handled by src/services/auth.js (temp frontend-only).
+ * When Flask integration begins, auth.login() will be replaced by
+ * a real API call — this component needs no changes at that point.
+ *
+ * Demo credentials (shown in the hint banner):
+ *   Email:    demo@facetrace.com
+ *   Password: FaceTrace123
  */
 function Login() {
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const location  = useLocation()
 
-  // Form field state
-  const [formData, setFormData] = useState({ email: '', password: '' })
+  // Where to go after login — fall back to /dashboard
+  const from = location.state?.from?.pathname || '/dashboard'
 
-  // UI state
+  const [formData, setFormData]       = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors]             = useState({})
-  const [isLoading, setIsLoading]       = useState(false)
+  const [errors, setErrors]           = useState({})
+  const [isLoading, setIsLoading]     = useState(false)
 
-  // ── Field change handler ───────────────────────────────────
+  // ── Field change ──────────────────────────────────────────
   function handleChange(e) {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-    // Clear the field error as the user types
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
+    // Also clear form-level error when user starts typing
+    if (errors.form) setErrors((prev) => ({ ...prev, form: '' }))
   }
 
-  // ── Client-side validation ────────────────────────────────
+  // ── Validation ────────────────────────────────────────────
   function validate() {
-    const newErrors = {}
+    const e = {}
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required.'
+      e.email = 'Email is required.'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address.'
+      e.email = 'Please enter a valid email address.'
     }
     if (!formData.password) {
-      newErrors.password = 'Password is required.'
+      e.password = 'Password is required.'
     }
-    return newErrors
+    return e
   }
 
   // ── Submit ────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault()
+
     const validationErrors = validate()
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
@@ -52,17 +62,27 @@ function Login() {
     }
 
     setIsLoading(true)
-    try {
-      /*
-       * TODO (Phase Flask integration):
-       *   const data = await loginUser({ email: formData.email, password: formData.password })
-       *   store JWT token, redirect to /dashboard
-       */
-      console.info('Login submitted — Flask API not yet connected.', formData.email)
+    setErrors({})
 
-      // Temporary demo: simulate a short delay then go to dashboard
-      await new Promise((r) => setTimeout(r, 800))
-      navigate('/dashboard')
+    try {
+      // Simulate a brief network delay for a realistic feel
+      await new Promise((r) => setTimeout(r, 500))
+
+      /*
+       * auth.login() is the single auth call.
+       * Replace this with a real API call when Flask is ready:
+       *   const data = await loginUser({ email, password })   // api.js
+       *   auth.setAuthenticated()
+       */
+      const result = login(formData.email, formData.password)
+
+      if (!result.success) {
+        setErrors({ form: result.error })
+        return
+      }
+
+      // Redirect back to the page the user was trying to visit
+      navigate(from, { replace: true })
     } catch (err) {
       setErrors({ form: err.message || 'Login failed. Please try again.' })
     } finally {
@@ -74,7 +94,7 @@ function Login() {
     <div className="auth-page">
       <div className="auth-card">
 
-        {/* Brand mark */}
+        {/* Brand */}
         <div className="auth-card__brand">
           <ScanFace size={32} className="auth-card__brand-icon" />
           <span className="auth-card__brand-text">FaceTrace</span>
@@ -83,7 +103,17 @@ function Login() {
         <h1 className="auth-card__title">Welcome back</h1>
         <p className="auth-card__subtitle">Sign in to your account to continue.</p>
 
-        {/* Form-level error (e.g. wrong credentials from API) */}
+        {/* Demo credentials hint — remove when Flask auth is live */}
+        <div className="auth-card__demo-hint" role="note">
+          <Info size={14} />
+          <span>
+            Demo credentials:&nbsp;
+            <strong>demo@facetrace.com</strong>&nbsp;/&nbsp;
+            <strong>FaceTrace123</strong>
+          </span>
+        </div>
+
+        {/* Form-level error */}
         {errors.form && (
           <div className="auth-card__form-error" role="alert">
             <AlertCircle size={16} />
@@ -125,7 +155,6 @@ function Login() {
               <label htmlFor="login-password" className="auth-form__label">
                 Password
               </label>
-              {/* Placeholder — forgot password page not yet built */}
               <span className="auth-form__forgot">Forgot password?</span>
             </div>
             <div className={`auth-form__input-wrap ${errors.password ? 'auth-form__input-wrap--error' : ''}`}>

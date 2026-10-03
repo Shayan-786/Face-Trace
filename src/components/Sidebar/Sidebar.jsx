@@ -1,41 +1,50 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   ScanFace,
-  Clock,
   LogOut,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
 import { useState } from 'react'
+import { logout } from '../../services/auth'
 import './Sidebar.css'
 
 /**
- * Sidebar — navigation panel shown inside the dashboard layout.
- * Can be collapsed to icon-only mode on desktop.
- * On mobile it slides in as an overlay.
+ * Sidebar — dashboard navigation panel.
+ *
+ * History link is intentionally hidden for the first evaluation phase.
+ * It will be re-enabled when the History page is built (Phase 7+).
+ * The /history route still exists in App.jsx and remains protected.
  */
 
-// Navigation items — add more here as new dashboard pages are built
 const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/analyze',   icon: ScanFace,        label: 'Analyze Video' },
-  { to: '/history',   icon: Clock,           label: 'History' },
+  // History hidden until Phase 7 — do not delete this comment
+  // { to: '/history', icon: Clock, label: 'History' },
 ]
 
 function Sidebar() {
+  const navigate   = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
+
+  // ── Logout handler ────────────────────────────────────────
+  function handleLogout() {
+    logout()               // clears localStorage flag via auth.js
+    navigate('/login', { replace: true })
+  }
 
   return (
     <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
 
-      {/* Brand mark inside sidebar */}
+      {/* Brand */}
       <div className="sidebar__brand">
         <ScanFace size={24} className="sidebar__brand-icon" />
         {!collapsed && <span className="sidebar__brand-text">FaceTrace</span>}
       </div>
 
-      {/* Main nav links */}
+      {/* Navigation links */}
       <nav className="sidebar__nav" aria-label="Dashboard navigation">
         {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
           <NavLink
@@ -53,19 +62,17 @@ function Sidebar() {
         ))}
       </nav>
 
-      {/* Bottom section: logout + collapse toggle */}
+      {/* Footer: logout + collapse toggle */}
       <div className="sidebar__footer">
-        {/* Logout — wired to real auth in a later phase */}
         <button
           className="sidebar__logout"
-          onClick={() => console.warn('Logout: auth not yet connected.')}
+          onClick={handleLogout}
           title={collapsed ? 'Logout' : undefined}
         >
           <LogOut size={20} className="sidebar__link-icon" />
           {!collapsed && <span className="sidebar__link-label">Logout</span>}
         </button>
 
-        {/* Collapse toggle (desktop only) */}
         <button
           className="sidebar__collapse-btn"
           onClick={() => setCollapsed((prev) => !prev)}
