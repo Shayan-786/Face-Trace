@@ -1,18 +1,23 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import PublicLayout from './layouts/PublicLayout'
+import PublicLayout    from './layouts/PublicLayout'
 import DashboardLayout from './layouts/DashboardLayout'
 
-// ── Placeholder pages (replaced in Phase 3 / 4 / 5) ──────────────
+// ── Public pages (Phase 3) ────────────────────────────────────
+import Home     from './pages/Home/Home'
+import Login    from './pages/Login/Login'
+import Register from './pages/Register/Register'
+
+// ── Dashboard pages — placeholder until Phase 4 / 5 ──────────
 function ComingSoon({ label }) {
   return (
     <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
+      display:        'flex',
+      flexDirection:  'column',
+      alignItems:     'center',
       justifyContent: 'center',
-      minHeight: '40vh',
-      gap: '0.75rem',
-      color: '#8b949e',
+      minHeight:      '40vh',
+      gap:            '0.75rem',
+      color:          '#8b949e',
     }}>
       <h2 style={{ color: '#e6edf3', fontSize: '1.25rem' }}>{label}</h2>
       <p style={{ fontSize: '0.875rem' }}>This page will be implemented in an upcoming phase.</p>
@@ -27,9 +32,9 @@ function App() {
 
         {/* ── Public routes — Navbar visible ── */}
         <Route element={<PublicLayout />}>
-          <Route path="/"         element={<ComingSoon label="Home" />} />
-          <Route path="/login"    element={<ComingSoon label="Login" />} />
-          <Route path="/register" element={<ComingSoon label="Register" />} />
+          <Route path="/"         element={<Home />} />
+          <Route path="/login"    element={<Login />} />
+          <Route path="/register" element={<Register />} />
         </Route>
 
         {/* ── Dashboard routes — Sidebar visible ── */}
@@ -39,7 +44,7 @@ function App() {
           <Route path="/history"   element={<ComingSoon label="History" />} />
         </Route>
 
-        {/* ── 404 — uses public layout so Navbar is present ── */}
+        {/* ── 404 ── */}
         <Route element={<PublicLayout />}>
           <Route path="*" element={<ComingSoon label="404 — Page Not Found" />} />
         </Route>
