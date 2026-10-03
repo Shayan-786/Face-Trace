@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   ScanFace,
+  Clock,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -12,17 +13,12 @@ import './Sidebar.css'
 
 /**
  * Sidebar — dashboard navigation panel.
- *
- * History link is intentionally hidden for the first evaluation phase.
- * It will be re-enabled when the History page is built (Phase 7+).
- * The /history route still exists in App.jsx and remains protected.
  */
 
 const NAV_ITEMS = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard',    end: true },
   { to: '/analyze',   icon: ScanFace,        label: 'Analyze Video' },
-  // History hidden until Phase 7 — do not delete this comment
-  // { to: '/history', icon: Clock, label: 'History' },
+  { to: '/history',   icon: Clock,           label: 'History' },
 ]
 
 function Sidebar() {

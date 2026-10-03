@@ -2,64 +2,154 @@
  * auth.js — Temporary frontend-only authentication service
  *
  * PURPOSE:
- *   Provides a simple, self-contained auth layer for the first FYP
- *   frontend evaluation. No passwords are ever stored. A single flag
- *   in localStorage indicates whether the demo user is logged in.
+ *   Self-contained auth layer for the FYP frontend evaluation.
+ *   No passwords are hashed or sent anywhere. All data lives only
+ *   in localStorage and is lost when the browser storage is cleared.
+ *
+ * STORAGE KEYS:
+ *   ft_is_authenticated  — 'true' when a user is signed in
+ *   ft_current_user      — JSON object { username, email } of the signed-in user
+ *   ft_users             — JSON array of registered users { username, email, password }
+ *
+ *   NOTE: Storing plain-text passwords in localStorage is acceptable
+ *   ONLY for this temporary frontend-only demo. It must be replaced
+ *   by Flask + MySQL + password hashing before any real deployment.
  *
  * REPLACING WITH FLASK LATER:
- *   When Flask API integration begins, replace the body of each
- *   exported function with a real API call from api.js.
- *   The function signatures stay the same, so Login.jsx, Sidebar.jsx,
- *   and ProtectedRoute.jsx require zero changes.
+ *   Each exported function has a TODO comment showing exactly what
+ *   API call replaces it. Login.jsx, Register.jsx, Sidebar.jsx, and
+ *   ProtectedRoute.jsx do not need structural changes.
  *
- * DEMO CREDENTIALS (frontend only — not a real account):
+ * DEMO CREDENTIALS (always available, even if localStorage is cleared):
  *   Email:    demo@facetrace.com
  *   Password: FaceTrace123
  */
 
-// ── Storage key ───────────────────────────────────────────────
-// Only the flag "is logged in" is stored — never the password.
-const AUTH_KEY = 'ft_is_authenticated'
+// ── Storage keys ──────────────────────────────────────────────
+const AUTH_KEY         = 'ft_is_authenticated'
+const CURRENT_USER_KEY = 'ft_current_user'
+const USERS_KEY        = 'ft_users'
 
-// ── Demo credentials (hardcoded for evaluation only) ─────────
-const DEMO_EMAIL    = 'demo@facetrace.com'
-const DEMO_PASSWORD = 'FaceTrace123'
+// ── Built-in demo account ─────────────────────────────────────
+const DEMO_USER = {
+  username: 'Demo User',
+  email:    'demo@facetrace.com',
+  password: 'FaceTrace123',   // stored only in memory — never written to localStorage
+}
+
+// ─────────────────────────────────────────────────────────────
+// Internal helpers
+// ─────────────────────────────────────────────────────────────
+
+/** Read the registered-users array from localStorage. */
+function getUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(USERS_KEY)) || []
+  } catch {
+    return []
+  }
+}
+
+/** Persist the registered-users array to localStorage. */
+function saveUsers(users) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users))
+}
+
+// ─────────────────────────────────────────────────────────────
+// Public API
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Register a new user.
+ *
+ * @param {{ username: string, email: string, password: string }} data
+ * @returns {{ success: boolean, error?: string }}
+ *
+ * TODO (Flask integration): replace body with:
+ *   const data = await registerUser({ username, email, password })  // api.js
+ *   return { success: true }
+ */
+export function register({ username, email, password }) {
+  const normEmail = email.trim().toLowerCase()
+
+  // Reject attempt to register the demo account
+  if (normEmail === DEMO_USER.email) {
+    return { success: false, error: 'This email address is already registered.' }
+  }
+
+  const users = getUsers()
+
+  // Duplicate email check
+  const exists = users.some((u) => u.email.toLowerCase() === normEmail)
+  if (exists) {
+    return { success: false, error: 'An account with this email already exists.' }
+  }
+
+  // Save new user
+  // WARNING: plain-text password — temporary evaluation only
+  users.push({ username: username.trim(), email: normEmail, password })
+  saveUsers(users)
+
+  return { success: true }
+}
 
 /**
  * Attempt to log in with the provided credentials.
+ *
+ * Checks the built-in demo account first, then localStorage users.
  *
  * @param {string} email
  * @param {string} password
  * @returns {{ success: boolean, error?: string }}
  *
  * TODO (Flask integration): replace body with:
- *   const data = await loginUser({ email, password })   // from api.js
+ *   const data = await loginUser({ email, password })   // api.js
  *   localStorage.setItem(AUTH_KEY, 'true')
+ *   localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(data.user))
  *   return { success: true }
  */
 export function login(email, password) {
-  if (
-    email.trim().toLowerCase() === DEMO_EMAIL &&
-    password === DEMO_PASSWORD
-  ) {
+  const normEmail = email.trim().toLowerCase()
+
+  // Check built-in demo account
+  if (normEmail === DEMO_USER.email && password === DEMO_USER.password) {
     localStorage.setItem(AUTH_KEY, 'true')
+    localStorage.setItem(
+      CURRENT_USER_KEY,
+      JSON.stringify({ username: DEMO_USER.username, email: DEMO_USER.email })
+    )
+    return { success: true }
+  }
+
+  // Check locally registered users
+  const users  = getUsers()
+  const match  = users.find(
+    (u) => u.email.toLowerCase() === normEmail && u.password === password
+  )
+
+  if (match) {
+    localStorage.setItem(AUTH_KEY, 'true')
+    localStorage.setItem(
+      CURRENT_USER_KEY,
+      JSON.stringify({ username: match.username, email: match.email })
+    )
     return { success: true }
   }
 
   return {
     success: false,
-    error: 'Invalid email or password. Please try the demo credentials.',
+    error: 'Invalid email or password.',
   }
 }
 
 /**
  * Log out the current user.
- * Clears the auth flag from localStorage.
  *
- * TODO (Flask integration): also call POST /auth/logout and clear JWT.
+ * TODO (Flask integration): also POST /auth/logout and clear JWT.
  */
 export function logout() {
   localStorage.removeItem(AUTH_KEY)
+  localStorage.removeItem(CURRENT_USER_KEY)
 }
 
 /**
@@ -71,4 +161,17 @@ export function logout() {
  */
 export function isAuthenticated() {
   return localStorage.getItem(AUTH_KEY) === 'true'
+}
+
+/**
+ * Get the currently signed-in user's profile.
+ *
+ * @returns {{ username: string, email: string } | null}
+ */
+export function getCurrentUser() {
+  try {
+    return JSON.parse(localStorage.getItem(CURRENT_USER_KEY)) || null
+  } catch {
+    return null
+  }
 }

@@ -11,6 +11,7 @@ import Register from './pages/Register/Register'
 // ── Protected dashboard pages ─────────────────────────────────
 import Dashboard from './pages/Dashboard/Dashboard'
 import Analyze   from './pages/Analyze/Analyze'
+import History   from './pages/History/History'
 
 // ── Placeholder for pages not yet built ───────────────────────
 function ComingSoon({ label }) {
@@ -52,11 +53,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/analyze"   element={<Analyze />} />
             <Route path="/profile"   element={<ComingSoon label="Profile" />} />
-            {/*
-              /history route is kept so the URL is protected and valid.
-              The sidebar link is hidden until Phase 7 (see Sidebar.jsx).
-            */}
-            <Route path="/history"   element={<ComingSoon label="History — Coming in Next Phase" />} />
+            <Route path="/history"   element={<History />} />
           </Route>
         </Route>
 

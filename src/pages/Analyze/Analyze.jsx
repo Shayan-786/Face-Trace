@@ -24,8 +24,8 @@ const ACCEPTED_MIME = 'video/mp4,video/x-msvideo,video/quicktime,video/x-matrosk
 /** Human-readable format list shown in the UI */
 const ACCEPTED_LABEL = 'MP4, AVI, MOV, MKV, WebM'
 
-/** Max file size in bytes (500 MB) */
-const MAX_SIZE_BYTES = 500 * 1024 * 1024
+/** Max file size in bytes (100 MB) */
+const MAX_SIZE_BYTES = 100 * 1024 * 1024
 
 /** States the page can be in */
 const PAGE_STATE = {
@@ -81,7 +81,7 @@ function Analyze() {
       return
     }
     if (chosen.size > MAX_SIZE_BYTES) {
-      setError(`File is too large. Maximum size is 500 MB.`)
+      setError(`File is too large. Maximum size is 100 MB.`)
       return
     }
 
@@ -229,7 +229,7 @@ function Analyze() {
               <p className="dropzone__hint">
                 Accepted formats: {ACCEPTED_LABEL}
               </p>
-              <p className="dropzone__hint">Maximum size: 500 MB</p>
+              <p className="dropzone__hint">Maximum size: 100 MB</p>
             </div>
           )}
 

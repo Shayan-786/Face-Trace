@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import Card   from '../../components/Card/Card'
 import Button from '../../components/Button/Button'
+import { getCurrentUser } from '../../services/auth'
 import './Dashboard.css'
 
 // ─────────────────────────────────────────────────────────────
@@ -20,7 +21,7 @@ import './Dashboard.css'
 // integration is complete in a later phase.
 // ─────────────────────────────────────────────────────────────
 
-const MOCK_USER = { username: 'Shayan' }
+const MOCK_USER = getCurrentUser() || { username: 'User' }
 
 const MOCK_STATS = [
   {

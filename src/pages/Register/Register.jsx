@@ -11,13 +11,19 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import Button from '../../components/Button/Button'
-import '../Login/Login.css'   // reuse all shared auth-page / auth-card / auth-form styles
-import './Register.css'       // register-specific additions
+import { register } from '../../services/auth'
+import '../Login/Login.css'
+import './Register.css'
 
 /**
- * Register page — frontend-only for now.
- * All fields and validation are ready for Flask API integration
- * (src/services/api.js → registerUser()).
+ * Register page — temporary frontend-only registration.
+ *
+ * Saves new users to localStorage via auth.register().
+ * Duplicate emails are rejected. Registered users can then sign in
+ * on the Login page using the same credentials.
+ *
+ * TODO (Flask integration): auth.register() will call the real
+ * POST /auth/register endpoint — no structural changes needed here.
  */
 function Register() {
   const navigate = useNavigate()
@@ -29,30 +35,32 @@ function Register() {
     confirm:  '',
   })
 
-  const [showPassword,  setShowPassword]  = useState(false)
-  const [showConfirm,   setShowConfirm]   = useState(false)
-  const [errors,        setErrors]        = useState({})
-  const [isLoading,     setIsLoading]     = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm,  setShowConfirm]  = useState(false)
+  const [errors,       setErrors]       = useState({})
+  const [isLoading,    setIsLoading]    = useState(false)
+  const [registered,   setRegistered]   = useState(false)
 
   // ── Field change ──────────────────────────────────────────
   function handleChange(e) {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
+    if (errors[name])  setErrors((prev) => ({ ...prev, [name]: '' }))
+    if (errors.form)   setErrors((prev) => ({ ...prev, form: '' }))
   }
 
-  // ── Password strength indicator ───────────────────────────
+  // ── Password strength ─────────────────────────────────────
   function getPasswordStrength(pw) {
     if (!pw) return null
     let score = 0
-    if (pw.length >= 8)               score++
-    if (/[A-Z]/.test(pw))             score++
-    if (/[0-9]/.test(pw))             score++
-    if (/[^A-Za-z0-9]/.test(pw))      score++
+    if (pw.length >= 8)           score++
+    if (/[A-Z]/.test(pw))         score++
+    if (/[0-9]/.test(pw))         score++
+    if (/[^A-Za-z0-9]/.test(pw))  score++
     if (score <= 1) return { label: 'Weak',   level: 1 }
     if (score === 2) return { label: 'Fair',   level: 2 }
     if (score === 3) return { label: 'Good',   level: 3 }
-    return                { label: 'Strong', level: 4 }
+    return               { label: 'Strong', level: 4 }
   }
 
   const strength = getPasswordStrength(formData.password)
@@ -60,37 +68,33 @@ function Register() {
   // ── Validation ────────────────────────────────────────────
   function validate() {
     const e = {}
-
     if (!formData.username.trim()) {
       e.username = 'Username is required.'
     } else if (formData.username.trim().length < 3) {
       e.username = 'Username must be at least 3 characters.'
     }
-
     if (!formData.email.trim()) {
       e.email = 'Email is required.'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       e.email = 'Please enter a valid email address.'
     }
-
     if (!formData.password) {
       e.password = 'Password is required.'
     } else if (formData.password.length < 8) {
       e.password = 'Password must be at least 8 characters.'
     }
-
     if (!formData.confirm) {
       e.confirm = 'Please confirm your password.'
     } else if (formData.confirm !== formData.password) {
       e.confirm = 'Passwords do not match.'
     }
-
     return e
   }
 
   // ── Submit ────────────────────────────────────────────────
   async function handleSubmit(e) {
     e.preventDefault()
+
     const validationErrors = validate()
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
@@ -98,21 +102,27 @@ function Register() {
     }
 
     setIsLoading(true)
-    try {
-      /*
-       * TODO (Phase Flask integration):
-       *   const data = await registerUser({
-       *     username: formData.username,
-       *     email:    formData.email,
-       *     password: formData.password,
-       *   })
-       *   store JWT token, redirect to /dashboard
-       */
-      console.info('Register submitted — Flask API not yet connected.', formData.email)
+    setErrors({})
 
-      // Temporary demo: short delay then go to dashboard
-      await new Promise((r) => setTimeout(r, 800))
-      navigate('/dashboard')
+    try {
+      // Simulate a brief processing delay
+      await new Promise((r) => setTimeout(r, 500))
+
+      const result = register({
+        username: formData.username,
+        email:    formData.email,
+        password: formData.password,
+      })
+
+      if (!result.success) {
+        // Duplicate email or other registration error
+        setErrors({ form: result.error })
+        return
+      }
+
+      // Show brief success state then redirect to login
+      setRegistered(true)
+      setTimeout(() => navigate('/login'), 1800)
     } catch (err) {
       setErrors({ form: err.message || 'Registration failed. Please try again.' })
     } finally {
@@ -120,11 +130,32 @@ function Register() {
     }
   }
 
+  // ── Success screen ────────────────────────────────────────
+  if (registered) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <div className="auth-card__brand">
+            <ScanFace size={32} className="auth-card__brand-icon" />
+            <span className="auth-card__brand-text">FaceTrace</span>
+          </div>
+          <div className="register__success">
+            <CheckCircle2 size={44} className="register__success-icon" />
+            <h2 className="register__success-title">Account created!</h2>
+            <p className="register__success-body">
+              Redirecting you to sign in&hellip;
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Main form ─────────────────────────────────────────────
   return (
     <div className="auth-page">
       <div className="auth-card">
 
-        {/* Brand mark */}
         <div className="auth-card__brand">
           <ScanFace size={32} className="auth-card__brand-icon" />
           <span className="auth-card__brand-text">FaceTrace</span>
@@ -135,7 +166,7 @@ function Register() {
           Join Face Trace to start analysing videos for deepfake content.
         </p>
 
-        {/* Form-level error */}
+        {/* Form-level error (duplicate email, etc.) */}
         {errors.form && (
           <div className="auth-card__form-error" role="alert">
             <AlertCircle size={16} />
@@ -225,7 +256,6 @@ function Register() {
               </button>
             </div>
 
-            {/* Password strength bar */}
             {strength && (
               <div className="register__strength">
                 <div className="register__strength-bars">
@@ -277,8 +307,6 @@ function Register() {
               >
                 {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
-
-              {/* Match indicator */}
               {formData.confirm && formData.confirm === formData.password && (
                 <CheckCircle2 size={16} className="register__match-icon" />
               )}
