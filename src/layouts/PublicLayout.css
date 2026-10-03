@@ -1,0 +1,14 @@
+/* ============================================================
+   PublicLayout — shell for public pages
+   ============================================================ */
+
+.public-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.public-layout__main {
+  flex: 1;
+  /* Pages handle their own internal padding and max-width */
+}

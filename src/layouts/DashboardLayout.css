@@ -1,0 +1,114 @@
+/* ============================================================
+   DashboardLayout — shell for authenticated pages
+   ============================================================ */
+
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+  position: relative;
+}
+
+/* ---------- Sidebar wrapper ---------- */
+.dashboard-layout__sidebar-wrapper {
+  /* Sidebar handles its own width via Sidebar.css */
+  flex-shrink: 0;
+}
+
+/* ---------- Right column ---------- */
+.dashboard-layout__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* prevents flex child overflow */
+  overflow-x: hidden;
+}
+
+/* ---------- Mobile top bar ---------- */
+.dashboard-layout__topbar {
+  display: none; /* hidden on desktop */
+  align-items: center;
+  gap: var(--space-3);
+  height: 56px;
+  padding: 0 var(--space-4);
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 150;
+}
+
+.dashboard-layout__topbar-title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.dashboard-layout__menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.dashboard-layout__menu-btn:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-tertiary);
+}
+
+/* ---------- Page content area ---------- */
+.dashboard-layout__main {
+  flex: 1;
+  padding: var(--space-8);
+  overflow-y: auto;
+}
+
+/* ---------- Mobile overlay ---------- */
+.dashboard-layout__overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 190;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  /* Hide sidebar by default; shown via sidebar's mobile class */
+  .dashboard-layout__sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform var(--transition-base);
+  }
+
+  .dashboard-layout__sidebar-wrapper--open {
+    transform: translateX(0);
+  }
+
+  /* Show overlay when sidebar is open */
+  .dashboard-layout__sidebar-wrapper--open ~ .dashboard-layout__overlay,
+  .dashboard-layout__overlay {
+    display: block;
+  }
+
+  /* Show top bar on mobile */
+  .dashboard-layout__topbar {
+    display: flex;
+  }
+
+  /* Reduce padding on small screens */
+  .dashboard-layout__main {
+    padding: var(--space-4);
+  }
+}
