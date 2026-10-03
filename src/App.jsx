@@ -7,7 +7,10 @@ import Home     from './pages/Home/Home'
 import Login    from './pages/Login/Login'
 import Register from './pages/Register/Register'
 
-// ── Dashboard pages — placeholder until Phase 4 / 5 ──────────
+// ── Dashboard pages ───────────────────────────────────────────
+import Dashboard from './pages/Dashboard/Dashboard'
+
+// ── Placeholder for pages not yet built (Phase 5+) ───────────
 function ComingSoon({ label }) {
   return (
     <div style={{
@@ -39,7 +42,7 @@ function App() {
 
         {/* ── Dashboard routes — Sidebar visible ── */}
         <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<ComingSoon label="Dashboard" />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/analyze"   element={<ComingSoon label="Analyze Video" />} />
           <Route path="/history"   element={<ComingSoon label="History" />} />
         </Route>
