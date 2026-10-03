@@ -9,6 +9,7 @@ import Register from './pages/Register/Register'
 
 // ── Dashboard pages ───────────────────────────────────────────
 import Dashboard from './pages/Dashboard/Dashboard'
+import Analyze   from './pages/Analyze/Analyze'
 
 // ── Placeholder for pages not yet built (Phase 5+) ───────────
 function ComingSoon({ label }) {
@@ -43,7 +44,7 @@ function App() {
         {/* ── Dashboard routes — Sidebar visible ── */}
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/analyze"   element={<ComingSoon label="Analyze Video" />} />
+          <Route path="/analyze"   element={<Analyze />} />
           <Route path="/history"   element={<ComingSoon label="History" />} />
         </Route>
 
