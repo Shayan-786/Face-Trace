@@ -1,69 +1,102 @@
 import { Outlet } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import Sidebar from '../components/Sidebar/Sidebar'
+import ThemeToggle from '../components/ThemeToggle/ThemeToggle'
 import './DashboardLayout.css'
 
-/**
- * DashboardLayout — shell for all authenticated dashboard pages.
- *
- * Structure:
- *   ┌──────────────────────────────────────┐
- *   │  Sidebar  │  Top bar  +  Page content│
- *   └──────────────────────────────────────┘
- *
- * On mobile the sidebar is hidden behind a hamburger toggle in the top bar.
- */
 function DashboardLayout() {
+  const dialogRef = useRef(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const openSidebar  = () => setSidebarOpen(true)
-  const closeSidebar = () => setSidebarOpen(false)
+  function closeSidebar() {
+    dialogRef.current?.close()
+    setSidebarOpen(false)
+  }
+
+  function openSidebar() {
+    dialogRef.current?.showModal()
+    setSidebarOpen(true)
+  }
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 769px)')
+
+    function handleResize(event) {
+      if (event.matches) {
+        dialogRef.current?.close()
+        setSidebarOpen(false)
+      }
+    }
+
+    desktop.addEventListener('change', handleResize)
+    return () => desktop.removeEventListener('change', handleResize)
+  }, [])
+
+  useEffect(() => {
+    if (!sidebarOpen) {
+      return
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [sidebarOpen])
 
   return (
     <div className="dashboard-layout">
-
-      {/* Sidebar — gets extra class on mobile when open */}
-      <div className={`dashboard-layout__sidebar-wrapper ${sidebarOpen ? 'dashboard-layout__sidebar-wrapper--open' : ''}`}>
+      <div className="dashboard-layout__sidebar-wrapper">
         <Sidebar />
       </div>
-
-      {/* Overlay — closes sidebar when tapping outside on mobile */}
-      {sidebarOpen && (
-        <div
-          className="dashboard-layout__overlay"
+      <dialog
+        ref={dialogRef}
+        id="mobile-navigation"
+        className="mobile-navigation"
+        aria-label="Main menu"
+        onClose={() => setSidebarOpen(false)}
+        onClick={(event) => {
+          if (event.target === dialogRef.current) {
+            const bounds = event.currentTarget.getBoundingClientRect()
+            if (event.clientX > bounds.right || event.clientY > bounds.bottom) {
+              closeSidebar()
+            }
+          }
+        }}
+      >
+        <button
+          type="button"
+          className="mobile-navigation__close"
           onClick={closeSidebar}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Right-hand column: top bar + page content */}
+          aria-label="Close menu"
+          autoFocus
+        >
+          <X size={20} />
+        </button>
+        <Sidebar onNavigate={closeSidebar} />
+      </dialog>
       <div className="dashboard-layout__content">
-
-        {/* Mobile-only top bar with hamburger */}
         <header className="dashboard-layout__topbar">
           <button
+            type="button"
             className="dashboard-layout__menu-btn"
             onClick={openSidebar}
-            aria-label="Open sidebar"
+            aria-label="Open menu"
+            aria-expanded={sidebarOpen}
+            aria-controls="mobile-navigation"
           >
             <Menu size={22} />
           </button>
           <span className="dashboard-layout__topbar-title">FaceTrace</span>
-          {/* Right-side close button shown when sidebar is open */}
-          {sidebarOpen && (
-            <button
-              className="dashboard-layout__menu-btn"
-              onClick={closeSidebar}
-              aria-label="Close sidebar"
-            >
-              <X size={22} />
-            </button>
-          )}
+          <span className="dashboard-layout__workspace-label">Your workspace</span>
+          <ThemeToggle />
         </header>
-
-        {/* Page content rendered by nested routes */}
-        <main className="dashboard-layout__main">
+        <main
+          id="main-content"
+          className="dashboard-layout__main"
+        >
           <Outlet />
         </main>
       </div>

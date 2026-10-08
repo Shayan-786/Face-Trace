@@ -10,7 +10,10 @@ function PublicLayout() {
   return (
     <div className="public-layout">
       <Navbar />
-      <main className="public-layout__main">
+      <main
+        id="main-content"
+        className="public-layout__main"
+      >
         <Outlet />
       </main>
     </div>

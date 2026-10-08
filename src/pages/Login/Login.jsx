@@ -1,204 +1,167 @@
-import { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, ScanFace, AlertCircle, Info } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { ScanFace } from 'lucide-react'
 import Button from '../../components/Button/Button'
-import { login } from '../../services/auth'
+import FormField from '../../components/FormField/FormField'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { useMounted } from '../../hooks/useMounted'
+import { login, getCurrentUser } from '../../services/auth'
 import './Login.css'
 
-/**
- * Login page.
- *
- * Auth is currently handled by src/services/auth.js (temp frontend-only).
- * When Flask integration begins, auth.login() will be replaced by
- * a real API call — this component needs no changes at that point.
- *
- * Demo credentials (shown in the hint banner):
- *   Email:    demo@facetrace.com
- *   Password: FaceTrace123
- */
 function Login() {
-  const navigate  = useNavigate()
-  const location  = useLocation()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const user = useCurrentUser()
+  const mounted = useMounted()
+  const submitting = useRef(false)
+  const formRef = useRef(null)
+  const [form, setForm] = useState({ email: '', password: '' })
+  const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
+  const previous = location.state?.from
+  const destination =
+    previous?.pathname?.startsWith('/') && !previous.pathname.startsWith('//')
+      ? `${previous.pathname}${previous.search || ''}${previous.hash || ''}`
+      : '/dashboard'
 
-  // Where to go after login — fall back to /dashboard
-  const from = location.state?.from?.pathname || '/dashboard'
-
-  const [formData, setFormData]       = useState({ email: '', password: '' })
-  const [showPassword, setShowPassword] = useState(false)
-  const [errors, setErrors]           = useState({})
-  const [isLoading, setIsLoading]     = useState(false)
-
-  // ── Field change ──────────────────────────────────────────
-  function handleChange(e) {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
-    // Also clear form-level error when user starts typing
-    if (errors.form) setErrors((prev) => ({ ...prev, form: '' }))
+  function handleChange(event) {
+    const { name, value } = event.target
+    setForm((current) => ({ ...current, [name]: value }))
+    setErrors((current) => ({ ...current, [name]: '', form: '' }))
   }
 
-  // ── Validation ────────────────────────────────────────────
-  function validate() {
-    const e = {}
-    if (!formData.email.trim()) {
-      e.email = 'Email is required.'
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      e.email = 'Please enter a valid email address.'
-    }
-    if (!formData.password) {
-      e.password = 'Password is required.'
-    }
-    return e
-  }
-
-  // ── Submit ────────────────────────────────────────────────
-  async function handleSubmit(e) {
-    e.preventDefault()
-
-    const validationErrors = validate()
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors)
+  async function handleSubmit(event) {
+    event.preventDefault()
+    if (submitting.current) {
       return
     }
 
-    setIsLoading(true)
-    setErrors({})
+    const nextErrors = {}
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      nextErrors.email = 'Enter a valid email address.'
+    }
+    if (!form.password) {
+      nextErrors.password = 'Enter your password.'
+    }
 
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length) {
+      formRef.current.elements.namedItem(Object.keys(nextErrors)[0])?.focus()
+      return
+    }
+
+    submitting.current = true
+    setLoading(true)
     try {
-      // Simulate a brief network delay for a realistic feel
-      await new Promise((r) => setTimeout(r, 500))
-
-      /*
-       * auth.login() is the single auth call.
-       * Replace this with a real API call when Flask is ready:
-       *   const data = await loginUser({ email, password })   // api.js
-       *   auth.setAuthenticated()
-       */
-      const result = login(formData.email, formData.password)
-
-      if (!result.success) {
-        setErrors({ form: result.error })
+      const result = await login(form.email, form.password)
+      if (!mounted.current) {
         return
       }
-
-      // Redirect back to the page the user was trying to visit
-      navigate(from, { replace: true })
-    } catch (err) {
-      setErrors({ form: err.message || 'Login failed. Please try again.' })
+      if (result.success) {
+        navigate(getCurrentUser()?.role === 'admin' ? '/admin' : destination, {
+          replace: true,
+        })
+      } else {
+        setErrors({ form: result.error })
+      }
+    } catch (error) {
+      if (mounted.current) {
+        setErrors({ form: error.message || 'Unable to sign in. Please try again.' })
+      }
     } finally {
-      setIsLoading(false)
+      submitting.current = false
+      if (mounted.current) {
+        setLoading(false)
+      }
     }
+  }
+
+  if (user) {
+    return (
+      <Navigate
+        to={user.role === 'admin' ? '/admin' : destination}
+        replace
+      />
+    )
   }
 
   return (
     <div className="auth-page">
       <div className="auth-card">
-
-        {/* Brand */}
         <div className="auth-card__brand">
-          <ScanFace size={32} className="auth-card__brand-icon" />
+          <ScanFace
+            size={32}
+            aria-hidden="true"
+          />
           <span className="auth-card__brand-text">FaceTrace</span>
         </div>
-
         <h1 className="auth-card__title">Welcome back</h1>
-        <p className="auth-card__subtitle">Sign in to your account to continue.</p>
-
-        {/* Demo credentials hint — remove when Flask auth is live */}
-        <div className="auth-card__demo-hint" role="note">
-          <Info size={14} />
-          <span>
-            Demo credentials:&nbsp;
-            <strong>demo@facetrace.com</strong>&nbsp;/&nbsp;
-            <strong>FaceTrace123</strong>
-          </span>
-        </div>
-
-        {/* Form-level error */}
-        {errors.form && (
-          <div className="auth-card__form-error" role="alert">
-            <AlertCircle size={16} />
-            <span>{errors.form}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate className="auth-form">
-
-          {/* Email */}
-          <div className="auth-form__group">
-            <label htmlFor="login-email" className="auth-form__label">
-              Email address
-            </label>
-            <div className={`auth-form__input-wrap ${errors.email ? 'auth-form__input-wrap--error' : ''}`}>
-              <Mail size={16} className="auth-form__input-icon" />
-              <input
-                id="login-email"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                className="auth-form__input"
-                autoComplete="email"
-                aria-describedby={errors.email ? 'login-email-error' : undefined}
-              />
-            </div>
-            {errors.email && (
-              <p id="login-email-error" className="auth-form__error" role="alert">
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div className="auth-form__group">
-            <div className="auth-form__label-row">
-              <label htmlFor="login-password" className="auth-form__label">
-                Password
-              </label>
-              <span className="auth-form__forgot">Forgot password?</span>
-            </div>
-            <div className={`auth-form__input-wrap ${errors.password ? 'auth-form__input-wrap--error' : ''}`}>
-              <Lock size={16} className="auth-form__input-icon" />
-              <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                className="auth-form__input"
-                autoComplete="current-password"
-                aria-describedby={errors.password ? 'login-password-error' : undefined}
-              />
-              <button
-                type="button"
-                className="auth-form__toggle-pw"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            {errors.password && (
-              <p id="login-password-error" className="auth-form__error" role="alert">
-                {errors.password}
-              </p>
-            )}
-          </div>
-
-          <Button type="submit" fullWidth disabled={isLoading} size="lg">
-            {isLoading ? 'Signing in…' : 'Sign In'}
-          </Button>
-
-        </form>
-
-        <p className="auth-card__switch">
-          Don&apos;t have an account?{' '}
-          <Link to="/register" className="auth-card__switch-link">
-            Create one
-          </Link>
+        <p className="auth-card__subtitle">
+          Sign in with an account created on this browser.
         </p>
-
+        {location.state?.registered && (
+          <p
+            className="notice"
+            role="status"
+          >
+            Account created. You can now sign in.
+          </p>
+        )}
+        {errors.form && (
+          <p
+            className="auth-card__form-error"
+            role="alert"
+          >
+            {errors.form}
+          </p>
+        )}
+        <form
+          ref={formRef}
+          className="auth-form"
+          onSubmit={handleSubmit}
+          noValidate
+          aria-busy={loading}
+        >
+          <FormField
+            id="login-email"
+            label="Email address"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={form.email}
+            onChange={handleChange}
+            error={errors.email}
+            required
+            maxLength={254}
+          />
+          <FormField
+            id="login-password"
+            label="Password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            value={form.password}
+            onChange={handleChange}
+            error={errors.password}
+            required
+            maxLength={128}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            size="lg"
+            disabled={loading}
+          >
+            {loading ? 'Signing in…' : 'Sign In'}
+          </Button>
+        </form>
+        <p className="auth-card__switch">
+          Don&apos;t have an account? <Link to="/signup">Sign up</Link>
+        </p>
+        <p className="auth-local-note">
+          Local frontend preview. Account recovery will be available when server
+          authentication is connected.
+        </p>
       </div>
     </div>
   )

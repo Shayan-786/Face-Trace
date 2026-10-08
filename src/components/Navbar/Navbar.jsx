@@ -1,68 +1,128 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { ScanFace, Menu, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import ThemeToggle from '../ThemeToggle/ThemeToggle'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import './Navbar.css'
 
-/**
- * Navbar — shown on all public-facing pages (Home, Login, Register).
- * Collapses into a hamburger menu on smaller screens.
- */
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const toggleRef = useRef(null)
+  const menuRef = useRef(null)
+  const location = useLocation()
+  const user = useCurrentUser()
+  const links = user
+    ? [
+        { to: '/', label: 'Home' },
+        {
+          to: user.role === 'admin' ? '/admin' : '/dashboard',
+          label: user.role === 'admin' ? 'Admin panel' : 'Dashboard',
+        },
+      ]
+    : [
+        { to: '/', label: 'Home' },
+        { to: '/login', label: 'Login' },
+        { to: '/signup', label: 'Sign up' },
+      ]
 
-  const toggleMenu = () => setMenuOpen((prev) => !prev)
-  const closeMenu  = () => setMenuOpen(false)
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (!menuOpen) {
+      return
+    }
+
+    menuRef.current?.querySelector('a')?.focus()
+    const desktop = window.matchMedia('(min-width: 769px)')
+
+    function closeOnDesktop(event) {
+      if (event.matches) {
+        setMenuOpen(false)
+      }
+    }
+
+    function closeOnEscape(event) {
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+        toggleRef.current?.focus()
+      }
+    }
+
+    desktop.addEventListener('change', closeOnDesktop)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      desktop.removeEventListener('change', closeOnDesktop)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [menuOpen])
 
   return (
     <header className="navbar">
       <div className="navbar__inner container">
-
-        {/* Brand / Logo */}
-        <Link to="/" className="navbar__brand" onClick={closeMenu}>
-          <ScanFace size={28} className="navbar__logo-icon" />
-          <span className="navbar__logo-text">Face<span className="navbar__logo-accent">Trace</span></span>
+        <Link
+          to="/"
+          className="navbar__brand"
+          onClick={() => setMenuOpen(false)}
+        >
+          <ScanFace
+            size={28}
+            className="navbar__logo-icon"
+            aria-hidden="true"
+          />
+          <span className="navbar__logo-text">
+            Face<span className="navbar__logo-accent">Trace</span>
+          </span>
         </Link>
-
-        {/* Desktop navigation links */}
-        <nav className="navbar__links" aria-label="Main navigation">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}
-          >
-            Home
-          </NavLink>
-          <NavLink
-            to="/login"
-            className={({ isActive }) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}
-          >
-            Login
-          </NavLink>
-          <NavLink
-            to="/register"
-            className={({ isActive }) => isActive ? 'navbar__link navbar__link--active' : 'navbar__link'}
-          >
-            Register
-          </NavLink>
+        <nav
+          className="navbar__links"
+          aria-label="Main navigation"
+        >
+          {links.map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end
+              className={({ isActive }) =>
+                `navbar__link ${isActive ? 'navbar__link--active' : ''}`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
         </nav>
-
-        {/* Hamburger toggle (mobile) */}
+        <ThemeToggle />
         <button
+          ref={toggleRef}
+          type="button"
           className="navbar__hamburger"
-          onClick={toggleMenu}
+          onClick={() => setMenuOpen((open) => !open)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={menuOpen}
+          aria-controls="public-mobile-menu"
         >
           {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
-
-      {/* Mobile dropdown menu */}
       {menuOpen && (
-        <nav className="navbar__mobile-menu" aria-label="Mobile navigation">
-          <NavLink to="/"         end onClick={closeMenu} className="navbar__mobile-link">Home</NavLink>
-          <NavLink to="/login"        onClick={closeMenu} className="navbar__mobile-link">Login</NavLink>
-          <NavLink to="/register"     onClick={closeMenu} className="navbar__mobile-link">Register</NavLink>
+        <nav
+          ref={menuRef}
+          id="public-mobile-menu"
+          className="navbar__mobile-menu"
+          aria-label="Mobile navigation"
+        >
+          {links.map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end
+              onClick={() => setMenuOpen(false)}
+              className="navbar__mobile-link"
+            >
+              {label}
+            </NavLink>
+          ))}
         </nav>
       )}
     </header>

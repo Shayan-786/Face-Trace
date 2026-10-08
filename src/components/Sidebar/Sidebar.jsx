@@ -6,9 +6,12 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  UserRound,
+  ShieldCheck,
 } from 'lucide-react'
 import { useState } from 'react'
 import { logout } from '../../services/auth'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import './Sidebar.css'
 
 /**
@@ -16,43 +19,63 @@ import './Sidebar.css'
  */
 
 const NAV_ITEMS = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard',    end: true },
-  { to: '/analyze',   icon: ScanFace,        label: 'Analyze Video' },
-  { to: '/history',   icon: Clock,           label: 'History' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/analyze', icon: ScanFace, label: 'Analyze Video' },
+  { to: '/history', icon: Clock, label: 'History' },
+  { to: '/profile', icon: UserRound, label: 'Account' },
 ]
 
-function Sidebar() {
-  const navigate   = useNavigate()
+function Sidebar({ onNavigate }) {
+  const user = useCurrentUser()
+  const items =
+    user?.role === 'admin'
+      ? [
+          ...NAV_ITEMS.filter((item) => item.to !== '/profile'),
+          { to: '/admin', icon: ShieldCheck, label: 'Admin panel' },
+        ]
+      : NAV_ITEMS
+  const navigate = useNavigate()
   const [collapsed, setCollapsed] = useState(false)
 
   // ── Logout handler ────────────────────────────────────────
   function handleLogout() {
-    logout()               // clears localStorage flag via auth.js
-    navigate('/login', { replace: true })
+    logout()
+    onNavigate?.()
+    navigate('/', { replace: true })
   }
 
   return (
     <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
-
       {/* Brand */}
       <div className="sidebar__brand">
-        <ScanFace size={24} className="sidebar__brand-icon" />
+        <ScanFace
+          size={24}
+          className="sidebar__brand-icon"
+        />
         {!collapsed && <span className="sidebar__brand-text">FaceTrace</span>}
       </div>
 
       {/* Navigation links */}
-      <nav className="sidebar__nav" aria-label="Dashboard navigation">
-        {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
+      <nav
+        className="sidebar__nav"
+        aria-label="Dashboard navigation"
+      >
+        {items.map(({ to, icon: Icon, label, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
+            onClick={onNavigate}
+            aria-label={label}
             className={({ isActive }) =>
               `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
             }
             title={collapsed ? label : undefined}
           >
-            <Icon size={20} className="sidebar__link-icon" />
+            <Icon
+              size={20}
+              className="sidebar__link-icon"
+            />
             {!collapsed && <span className="sidebar__link-label">{label}</span>}
           </NavLink>
         ))}
@@ -63,9 +86,13 @@ function Sidebar() {
         <button
           className="sidebar__logout"
           onClick={handleLogout}
+          aria-label="Logout"
           title={collapsed ? 'Logout' : undefined}
         >
-          <LogOut size={20} className="sidebar__link-icon" />
+          <LogOut
+            size={20}
+            className="sidebar__link-icon"
+          />
           {!collapsed && <span className="sidebar__link-label">Logout</span>}
         </button>
 

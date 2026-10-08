@@ -62,8 +62,8 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background-color: rgba(248, 81, 73, 0.1);
-  border: 1px solid rgba(248, 81, 73, 0.3);
+  background-color: rgba(var(--color-danger-rgb), 0.1);
+  border: 1px solid rgba(var(--color-danger-rgb), 0.3);
   border-radius: var(--radius-md);
   color: var(--color-danger);
   font-size: var(--text-sm);
@@ -102,27 +102,10 @@
   gap: var(--space-2);
 }
 
-.auth-form__label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .auth-form__label {
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--color-text-primary);
-}
-
-.auth-form__forgot {
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: color var(--transition-fast);
-}
-
-.auth-form__forgot:hover {
-  color: var(--color-accent);
 }
 
 /* Input wrapper — holds icon + input + optional toggle */
@@ -134,12 +117,14 @@
   border-radius: var(--radius-md);
   padding: 0 var(--space-3);
   gap: var(--space-2);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .auth-form__input-wrap:focus-within {
   border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.15);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb), 0.15);
 }
 
 .auth-form__input-wrap--error {
@@ -148,12 +133,7 @@
 
 .auth-form__input-wrap--error:focus-within {
   border-color: var(--color-danger);
-  box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.15);
-}
-
-.auth-form__input-icon {
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(var(--color-danger-rgb), 0.15);
 }
 
 .auth-form__input {
@@ -228,27 +208,3 @@
 }
 
 /* ── Demo credentials hint banner ───────────────────────────── */
-.auth-card__demo-hint {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background-color: rgba(56, 139, 253, 0.08);
-  border: 1px solid rgba(56, 139, 253, 0.25);
-  border-radius: var(--radius-md);
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-4);
-  line-height: 1.5;
-}
-
-.auth-card__demo-hint svg {
-  color: var(--color-accent);
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.auth-card__demo-hint strong {
-  color: var(--color-accent);
-  font-weight: 600;
-}

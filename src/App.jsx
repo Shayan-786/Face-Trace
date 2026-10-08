@@ -1,67 +1,87 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import PublicLayout    from './layouts/PublicLayout'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import PublicLayout from './layouts/PublicLayout'
 import DashboardLayout from './layouts/DashboardLayout'
-import ProtectedRoute  from './components/ProtectedRoute/ProtectedRoute'
-
-// ── Public pages ──────────────────────────────────────────────
-import Home     from './pages/Home/Home'
-import Login    from './pages/Login/Login'
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
+import Home from './pages/Home/Home'
+import Login from './pages/Login/Login'
 import Register from './pages/Register/Register'
-
-// ── Protected dashboard pages ─────────────────────────────────
 import Dashboard from './pages/Dashboard/Dashboard'
-import Analyze   from './pages/Analyze/Analyze'
-import History   from './pages/History/History'
-
-// ── Placeholder for pages not yet built ───────────────────────
-function ComingSoon({ label }) {
-  return (
-    <div style={{
-      display:        'flex',
-      flexDirection:  'column',
-      alignItems:     'center',
-      justifyContent: 'center',
-      minHeight:      '40vh',
-      gap:            '0.75rem',
-      color:          '#8b949e',
-    }}>
-      <h2 style={{ color: '#e6edf3', fontSize: '1.25rem' }}>{label}</h2>
-      <p style={{ fontSize: '0.875rem' }}>This page will be implemented in an upcoming phase.</p>
-    </div>
-  )
-}
+import Analyze from './pages/Analyze/Analyze'
+import History from './pages/History/History'
+import Results from './pages/Results/Results'
+import Profile from './pages/Profile/Profile'
+import Admin from './pages/Admin/Admin'
+import NotFound from './pages/NotFound/NotFound'
 
 function App() {
   return (
     <BrowserRouter>
+      <a
+        className="skip-link"
+        href="#main-content"
+      >
+        Skip to content
+      </a>
       <Routes>
-
-        {/* ── Public routes — no auth required ── */}
         <Route element={<PublicLayout />}>
-          <Route path="/"         element={<Home />} />
-          <Route path="/login"    element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route
+            path="/"
+            element={<Home />}
+          />
+          <Route
+            path="/login"
+            element={<Login />}
+          />
+          <Route
+            path="/signup"
+            element={<Register />}
+          />
+          <Route
+            path="/register"
+            element={
+              <Navigate
+                to="/signup"
+                replace
+              />
+            }
+          />
+          <Route
+            path="*"
+            element={<NotFound />}
+          />
         </Route>
-
-        {/* ── Protected routes ──────────────────────────────────
-            ProtectedRoute checks auth first.
-            If not authenticated → redirects to /login.
-            If authenticated → renders DashboardLayout + nested page.
-        ── */}
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/analyze"   element={<Analyze />} />
-            <Route path="/profile"   element={<ComingSoon label="Profile" />} />
-            <Route path="/history"   element={<History />} />
+            <Route
+              path="/dashboard"
+              element={<Dashboard />}
+            />
+            <Route
+              path="/analyze"
+              element={<Analyze />}
+            />
+            <Route
+              path="/history"
+              element={<History />}
+            />
+            <Route
+              path="/history/:analysisId"
+              element={<Results />}
+            />
+            <Route
+              path="/profile"
+              element={<Profile />}
+            />
           </Route>
         </Route>
-
-        {/* ── 404 ── */}
-        <Route element={<PublicLayout />}>
-          <Route path="*" element={<ComingSoon label="404 — Page Not Found" />} />
+        <Route element={<ProtectedRoute role="admin" />}>
+          <Route element={<DashboardLayout />}>
+            <Route
+              path="/admin"
+              element={<Admin />}
+            />
+          </Route>
         </Route>
-
       </Routes>
     </BrowserRouter>
   )

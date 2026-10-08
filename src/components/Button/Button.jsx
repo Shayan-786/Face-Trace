@@ -1,24 +1,12 @@
+import { Link } from 'react-router-dom'
 import './Button.css'
 
-/**
- * Button — reusable button component.
- *
- * Props:
- *   variant  — 'primary' | 'secondary' | 'danger' | 'ghost'  (default: 'primary')
- *   size     — 'sm' | 'md' | 'lg'                            (default: 'md')
- *   fullWidth — boolean                                       (default: false)
- *   disabled  — boolean
- *   onClick   — function
- *   type      — 'button' | 'submit' | 'reset'                (default: 'button')
- *   children  — button label / content
- */
 function Button({
   variant = 'primary',
   size = 'md',
   fullWidth = false,
-  disabled = false,
-  onClick,
   type = 'button',
+  to,
   children,
   className = '',
   ...rest
@@ -33,12 +21,22 @@ function Button({
     .filter(Boolean)
     .join(' ')
 
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className={classes}
+        {...rest}
+      >
+        {children}
+      </Link>
+    )
+  }
+
   return (
     <button
       type={type}
       className={classes}
-      disabled={disabled}
-      onClick={onClick}
       {...rest}
     >
       {children}
