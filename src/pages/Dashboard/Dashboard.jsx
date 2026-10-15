@@ -22,7 +22,7 @@ function Dashboard() {
             size={17}
             aria-hidden="true"
           />
-          Check a video
+          Analyze a video
         </Button>
       </div>
       <p className="notice">

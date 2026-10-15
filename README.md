@@ -58,6 +58,10 @@ On Windows PowerShell, use `npm.cmd` instead of `npm` if script execution policy
 
 Open **Sign up** to create an account. Accounts are stored only in the current browser. There is no built-in regular-user demo account. Use a test password that you do not use elsewhere.
 
+Usernames require 3–30 characters, using letters and optional single spaces between words. Usernames and email addresses must be unique (case-insensitive). New accounts and email changes accept gmail.com, yahoo.com, outlook.com, hotmail.com, and live.com only; this does not verify mailbox ownership. Existing accounts can still sign in with their saved email. Passwords require 8–128 characters with uppercase, lowercase, a number, and a special character. Signup requires agreement to the Terms & Conditions; the accepted version and timestamp are saved with the account.
+
+All pages share a top navbar with responsive mobile navigation and a compact sun/moon theme control. Signed-in navigation includes Dashboard, Analyze Video, History, and a top-right account icon; only administrators see Admin Panel. The account dropdown offers username, email, and password settings plus Logout. Email and password changes require the current password; saved history stays attached to the account. The fixed admin account remains non-editable. Terms & Conditions are linked from the footer on every page.
+
 Regular users see their own dashboard, video checks, history, and account page. They do not see the admin link, and the frontend redirects them away from `/admin`.
 
 ### Fixed administrator account
@@ -74,6 +78,8 @@ The administrator can manage local users and all saved video records, as well as
 **These credentials are intentionally public prototype credentials.** They are included in the client bundle. Frontend route checks and localStorage sessions are not secure authorization; a backend must enforce authentication and permissions before real deployment.
 
 Suspending a user prevents normal sign-in and invalidates their local session checks. Their records remain available, and the administrator can reactivate the account.
+
+The administrator can also permanently delete a user and their associated saved records after confirmation, or delete individual records. Other users' records and original video files remain untouched. The fixed administrator account cannot be deleted.
 
 ## Video support
 
@@ -112,6 +118,7 @@ A supported extension does not guarantee playback or prove that a file is valid.
 | `/history/:analysisId` | Personal record details                           |
 | `/profile`             | User profile; fixed-account information for admin |
 | `/admin`               | Administrator management panel                    |
+| `/terms`               | Terms & Conditions and local data practices       |
 
 The old `/register` address redirects to `/signup`. Unrecognized routes show a not-found page.
 

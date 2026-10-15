@@ -3,7 +3,12 @@ import Button from '../../components/Button/Button'
 import Card from '../../components/Card/Card'
 import ConfirmDialog from '../../components/ConfirmDialog/ConfirmDialog'
 import ConfidenceBar from '../../components/ConfidenceBar/ConfidenceBar'
-import { getCurrentUser, getAdminUsers, setUserActive } from '../../services/auth'
+import {
+  getCurrentUser,
+  getAdminUsers,
+  setUserActive,
+  deleteUser,
+} from '../../services/auth'
 import { getAdminRecords, deleteAdminRecord } from '../../services/analysis'
 import { subscribeToStorage } from '../../services/storage'
 
@@ -38,6 +43,10 @@ function Admin() {
       if (pending.kind === 'user') {
         setUserActive(pending.email, pending.active)
         setMessage('User status updated.')
+      } else if (pending.kind === 'delete-user') {
+        deleteUser(pending.email)
+        setSelected(null)
+        setMessage('Account and associated saved records deleted.')
       } else {
         deleteAdminRecord(pending.id)
         if (selected?.id === pending.id) {
@@ -144,7 +153,7 @@ function Admin() {
                     <td>
                       {records.filter((record) => record.ownerId === user.id).length}
                     </td>
-                    <td>{user.active ? 'Active' : 'Suspended'}</td>
+                    <td>{user.active ? 'Active' : 'Inactive'}</td>
                     <td>
                       <Button
                         size="sm"
@@ -154,12 +163,31 @@ function Admin() {
                             kind: 'user',
                             email: user.email,
                             active: !user.active,
-                            title: `${user.active ? 'Suspend' : 'Reactivate'} ${user.username}?`,
-                            label: user.active ? 'Suspend user' : 'Reactivate user',
+                            title: `${user.active ? 'Deactivate' : 'Activate'} ${user.username}?`,
+                            label: user.active ? 'Deactivate user' : 'Activate user',
+                            description: user.active
+                              ? `${user.email} will be unable to sign in. Saved records will remain, and the account can be activated again.`
+                              : `${user.email} will be able to sign in again.`,
                           })
                         }
                       >
-                        {user.active ? 'Suspend' : 'Reactivate'}
+                        {user.active ? 'Deactivate' : 'Activate'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        aria-label={`Delete account for ${user.username}`}
+                        onClick={() =>
+                          setPending({
+                            kind: 'delete-user',
+                            email: user.email,
+                            title: `Delete ${user.username}?`,
+                            label: 'Delete account',
+                            description: `Permanently delete ${user.email} and all ${records.filter((record) => record.ownerId === user.id).length} associated saved records from this browser? This cannot be undone. Original video files are not affected.`,
+                          })
+                        }
+                      >
+                        Delete account
                       </Button>
                     </td>
                   </tr>
@@ -219,6 +247,7 @@ function Admin() {
                               id: record.id,
                               title: 'Delete video record?',
                               label: 'Delete record',
+                              description: `Permanently delete ${record.filename} from this browser and the user history? The original video file is not affected.`,
                             })
                           }
                         >
@@ -261,11 +290,7 @@ function Admin() {
       <ConfirmDialog
         open={Boolean(pending)}
         title={pending?.title || 'Confirm action'}
-        description={
-          pending?.kind === 'user'
-            ? 'Suspended users cannot sign in. Their records are kept, and you can reactivate them here.'
-            : 'Permanently delete this saved record from this browser and the user history? The original video file is not affected.'
-        }
+        description={pending?.description || ''}
         confirmLabel={pending?.label || 'Confirm'}
         onCancel={() => setPending(null)}
         onConfirm={confirmAction}

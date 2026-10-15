@@ -1,4 +1,10 @@
-import { readJson, writeJson } from './storage.js'
+import {
+  validateUsername,
+  validateAccountEmail,
+  validatePassword,
+  TERMS_VERSION,
+} from './validation.js'
+import { readJson, writeJson, writeJsonBatch } from './storage.js'
 
 // Local prototype only. Flask must authenticate requests and enforce permissions.
 // Password derivation prevents storing new passwords as plaintext, but browser
@@ -49,26 +55,21 @@ async function derivePassword(password, salt) {
   ).join('')
 }
 
-export async function register({ username, email, password }) {
+export async function register({ username, email, password, acceptedTerms }) {
   const normalizedEmail = email.trim().toLowerCase()
   const name = username.trim()
   if (normalizedEmail === ADMIN_EMAIL) {
     return { success: false, error: 'This email is reserved for the administrator.' }
   }
 
-  if (name.length < 3 || name.length > 50) {
-    return { success: false, error: 'Username must contain between 3 and 50 characters.' }
-  }
-  if (
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) ||
-    normalizedEmail.length > 254
-  ) {
-    return { success: false, error: 'Please enter a valid email address.' }
-  }
-  if (password.length < 8 || password.length > 128) {
-    return {
-      success: false,
-      error: 'Password must contain between 8 and 128 characters.',
+  for (const [field, error] of Object.entries({
+    username: validateUsername(name),
+    email: validateAccountEmail(normalizedEmail),
+    password: validatePassword(password),
+    acceptedTerms: acceptedTerms === true ? '' : 'Please accept the Terms & Conditions.',
+  })) {
+    if (error) {
+      return { success: false, field, error }
     }
   }
 
@@ -77,7 +78,15 @@ export async function register({ username, email, password }) {
   const users = getUsers()
 
   if (users.some((user) => user.email.toLowerCase() === normalizedEmail)) {
-    return { success: false, error: 'An account with this email already exists.' }
+    return {
+      success: false,
+      field: 'email',
+      error: 'An account with this email already exists.',
+    }
+  }
+
+  if (users.some((user) => user.username.toLowerCase() === name.toLowerCase())) {
+    return { success: false, field: 'username', error: 'This username is already taken.' }
   }
 
   writeJson(USERS_KEY, [
@@ -88,6 +97,8 @@ export async function register({ username, email, password }) {
       email: normalizedEmail,
       passwordHash,
       salt,
+      termsVersion: TERMS_VERSION,
+      termsAcceptedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
     },
   ])
@@ -194,8 +205,18 @@ export function updateProfile(username) {
   if (user.role === 'admin') {
     throw new Error('The fixed administrator profile cannot be edited.')
   }
-  if (name.length < 3 || name.length > 50) {
-    throw new Error('Username must contain between 3 and 50 characters.')
+  const error = validateUsername(name)
+  if (error) {
+    throw new Error(error)
+  }
+  if (
+    getUsers().some(
+      (account) =>
+        account.email !== user.email &&
+        account.username.toLowerCase() === name.toLowerCase(),
+    )
+  ) {
+    throw new Error('This username is already taken.')
   }
 
   writeJson(
@@ -208,6 +229,56 @@ export function updateProfile(username) {
 
 export function getUserSnapshot() {
   return JSON.stringify(getCurrentUser())
+}
+
+export async function changeAccountCredentials({ currentPassword, email, password }) {
+  const user = getCurrentUser()
+  if (!user || user.role === 'admin') {
+    throw new Error('Sign in with a regular account to change these details.')
+  }
+  const account = getUsers().find((entry) => entry.id === user.id)
+  const valid =
+    account?.passwordHash && Array.isArray(account.salt)
+      ? (await derivePassword(currentPassword, account.salt)) === account.passwordHash
+      : typeof account?.password === 'string' && currentPassword === account.password
+  if (!valid) throw new Error('Current password is incorrect.')
+  const changes = {}
+  if (email !== undefined) {
+    const error = validateAccountEmail(email)
+    if (error) throw new Error(error)
+    changes.email = email.trim().toLowerCase()
+  }
+  if (password !== undefined) {
+    const error = validatePassword(password)
+    if (error) throw new Error(error)
+    if (password === currentPassword) throw new Error('Choose a different new password.')
+    changes.salt = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    changes.passwordHash = await derivePassword(password, changes.salt)
+  }
+  const users = getUsers()
+  const latest = users.find((entry) => entry.id === user.id)
+  if (
+    getCurrentUser()?.id !== user.id ||
+    latest?.active === false ||
+    latest?.passwordHash !== account.passwordHash ||
+    latest?.email !== account.email
+  ) {
+    throw new Error('Your account changed. Sign in again before retrying.')
+  }
+  if (
+    changes.email &&
+    users.some(
+      (entry) => entry.id !== user.id && entry.email.toLowerCase() === changes.email,
+    )
+  ) {
+    throw new Error('An account with this email already exists.')
+  }
+  const updated = { ...latest, ...changes }
+  if (changes.passwordHash) delete updated.password
+  writeJsonBatch([
+    [USERS_KEY, users.map((entry) => (entry.id === user.id ? updated : entry))],
+    [SESSION_KEY, { email: updated.email }],
+  ])
 }
 
 export function requireAdmin() {
@@ -238,4 +309,28 @@ export function setUserActive(email, active) {
     USERS_KEY,
     getUsers().map((user) => (user.email === email ? { ...user, active } : user)),
   )
+}
+
+export function deleteUser(email) {
+  requireAdmin()
+  const normalizedEmail = email.trim().toLowerCase()
+  if (normalizedEmail === ADMIN_EMAIL) {
+    throw new Error('The administrator account cannot be deleted.')
+  }
+  const users = getUsers()
+  const user = users.find((account) => account.email.toLowerCase() === normalizedEmail)
+  if (!user) {
+    throw new Error('This account no longer exists.')
+  }
+  const records = readJson('ft_analysis_records', [])
+  if (!Array.isArray(records)) {
+    throw new Error('Saved records could not be read. Account deletion was cancelled.')
+  }
+  writeJsonBatch([
+    [
+      USERS_KEY,
+      users.filter((account) => account.email.toLowerCase() !== normalizedEmail),
+    ],
+    ['ft_analysis_records', records.filter((record) => record?.ownerId !== user.id)],
+  ])
 }

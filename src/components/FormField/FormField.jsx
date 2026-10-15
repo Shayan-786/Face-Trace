@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 
-function FormField({ id, label, error, type = 'text', ...props }) {
+function FormField({
+  id,
+  label,
+  error,
+  type = 'text',
+  'aria-describedby': describedBy,
+  ...props
+}) {
   const [visible, setVisible] = useState(false)
   const isPassword = type === 'password'
 
@@ -22,7 +29,10 @@ function FormField({ id, label, error, type = 'text', ...props }) {
           type={isPassword && visible ? 'text' : type}
           className="auth-form__input"
           aria-invalid={Boolean(error)}
-          aria-describedby={error ? `${id}-error` : undefined}
+          aria-describedby={
+            [describedBy, error ? `${id}-error` : ''].filter(Boolean).join(' ') ||
+            undefined
+          }
         />
         {isPassword && (
           <button

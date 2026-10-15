@@ -30,3 +30,23 @@ export function subscribeToStorage(callback) {
     window.removeEventListener(CHANGE_EVENT, callback)
   }
 }
+
+// Publish one change only after every related local write has succeeded.
+export function writeJsonBatch(entries) {
+  const previous = entries.map(([key]) => [key, localStorage.getItem(key)])
+  try {
+    for (const [key, value] of entries) {
+      localStorage.setItem(key, JSON.stringify(value))
+    }
+  } catch {
+    for (const [key, value] of previous) {
+      if (value === null) {
+        localStorage.removeItem(key)
+      } else {
+        localStorage.setItem(key, value)
+      }
+    }
+    throw new Error('Unable to save account changes. Browser storage is unavailable.')
+  }
+  window.dispatchEvent(new Event(CHANGE_EVENT))
+}

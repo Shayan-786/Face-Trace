@@ -1,3 +1,9 @@
+import {
+  validateUsername,
+  validateAccountEmail,
+  validatePassword,
+  passwordRequirements,
+} from '../../services/validation'
 import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { ScanFace } from 'lucide-react'
@@ -14,13 +20,19 @@ function Register() {
   const mounted = useMounted()
   const submitting = useRef(false)
   const formRef = useRef(null)
-  const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' })
+  const [form, setForm] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirm: '',
+    acceptedTerms: false,
+  })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
   function handleChange(event) {
-    const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
+    const { name, value, checked, type } = event.target
+    setForm((current) => ({ ...current, [name]: type === 'checkbox' ? checked : value }))
     setErrors((current) => ({ ...current, [name]: '', form: '' }))
   }
 
@@ -31,14 +43,15 @@ function Register() {
     }
 
     const nextErrors = {}
-    if (form.username.trim().length < 3) {
-      nextErrors.username = 'Enter at least 3 characters.'
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
-      nextErrors.email = 'Enter a valid email address.'
-    }
-    if (form.password.length < 8) {
-      nextErrors.password = 'Use at least 8 characters.'
+    for (const [field, error] of Object.entries({
+      username: validateUsername(form.username),
+      email: validateAccountEmail(form.email),
+      password: validatePassword(form.password),
+      acceptedTerms: form.acceptedTerms ? '' : 'Please accept the Terms & Conditions.',
+    })) {
+      if (error) {
+        nextErrors[field] = error
+      }
     }
     if (!form.confirm || form.confirm !== form.password) {
       nextErrors.confirm = 'Passwords must match.'
@@ -60,7 +73,8 @@ function Register() {
       if (result.success) {
         navigate('/login', { replace: true, state: { registered: true } })
       } else {
-        setErrors({ form: result.error })
+        setErrors({ [result.field || 'form']: result.error })
+        formRef.current.elements.namedItem(result.field)?.focus()
       }
     } catch (error) {
       if (mounted.current) {
@@ -121,7 +135,7 @@ function Register() {
             onChange={handleChange}
             error={errors.username}
             required
-            maxLength={50}
+            maxLength={30}
           />
           <FormField
             id="reg-email"
@@ -144,10 +158,25 @@ function Register() {
             value={form.password}
             onChange={handleChange}
             error={errors.password}
-            placeholder="At least 8 characters"
+            aria-describedby="password-requirements"
             required
             maxLength={128}
           />
+          <ul
+            id="password-requirements"
+            className="password-requirements"
+            aria-label="Password requirements"
+          >
+            {passwordRequirements(form.password).map((rule) => (
+              <li
+                key={rule.label}
+                className={rule.met ? 'requirement-met' : ''}
+              >
+                <span aria-hidden="true">{rule.met ? '✓' : '○'}</span> {rule.label}
+                <span className="sr-only">{rule.met ? ' — met' : ' — not met'}</span>
+              </li>
+            ))}
+          </ul>
           <FormField
             id="reg-confirm"
             label="Confirm password"
@@ -160,6 +189,38 @@ function Register() {
             required
             maxLength={128}
           />
+          <div>
+            <label className="terms-agreement">
+              <input
+                type="checkbox"
+                name="acceptedTerms"
+                checked={form.acceptedTerms}
+                onChange={handleChange}
+                required
+                aria-invalid={Boolean(errors.acceptedTerms)}
+                aria-describedby={errors.acceptedTerms ? 'terms-error' : undefined}
+              />
+              <span>
+                I agree to the{' '}
+                <Link
+                  to="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms & Conditions (opens in a new tab)
+                </Link>
+                .
+              </span>
+            </label>
+            {errors.acceptedTerms && (
+              <p
+                id="terms-error"
+                className="auth-form__error"
+              >
+                {errors.acceptedTerms}
+              </p>
+            )}
+          </div>
           <Button
             type="submit"
             fullWidth

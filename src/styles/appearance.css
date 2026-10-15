@@ -1,4 +1,4 @@
-/* Charcoal Teal: shared visual treatment for public and account pages. */
+/* Paper & Ink: warm paper, blue ink, and editorial typography. */
 
 body {
   letter-spacing: -0.01em;
@@ -32,7 +32,7 @@ h3 {
 }
 
 .navbar__inner {
-  height: 72px;
+  height: 64px;
   gap: var(--space-4);
 }
 
@@ -42,7 +42,6 @@ h3 {
 }
 
 .navbar__logo-text,
-.sidebar__brand-text,
 .auth-card__brand-text {
   font-weight: 600;
   letter-spacing: -0.04em;
@@ -54,14 +53,13 @@ h3 {
 }
 
 .navbar__logo-icon,
-.sidebar__brand-icon,
 .auth-card__brand-icon {
   stroke-width: 1.5;
 }
 
 .home__hero {
   background: var(--color-bg-primary);
-  padding: 88px 0 72px;
+  padding: 96px 0 80px;
 }
 
 .home__hero-inner {
@@ -70,14 +68,16 @@ h3 {
 }
 
 .home__hero-title {
-  font-size: clamp(2.4rem, 5.5vw, 4rem);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.6rem, 5.5vw, 4.5rem);
   font-weight: 500;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.045em;
   line-height: 1.08;
 }
 
 .home__hero-accent {
   color: var(--color-accent);
+  font-style: italic;
 }
 
 .home__hero-badge {
@@ -156,13 +156,13 @@ h3 {
 }
 
 .auth-page {
-  min-height: calc(100vh - 72px);
+  min-height: calc(100vh - 64px);
 }
 
 .auth-card {
   max-width: 460px;
   padding: 36px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .auth-card__title {
@@ -178,73 +178,63 @@ h3 {
   opacity: 0.85;
 }
 
-.sidebar {
-  width: 204px;
-  background: var(--color-sidebar-bg);
-  border-color: var(--color-sidebar-border);
-  --color-border-focus: var(--color-sidebar-active);
-}
-
-.sidebar__brand,
-.sidebar__footer {
-  border-color: var(--color-sidebar-border);
-}
-
-.sidebar__brand-text,
-.sidebar__brand-icon {
-  color: var(--color-sidebar-text);
-}
-
-.sidebar__link,
-.sidebar__logout,
-.sidebar__collapse-btn {
-  color: var(--color-sidebar-muted);
-}
-
-.sidebar__collapse-btn {
-  border-color: var(--color-sidebar-border);
-}
-
-.sidebar__link:hover,
-.sidebar__logout:hover,
-.sidebar__collapse-btn:hover {
-  color: var(--color-sidebar-text);
-  background: var(--color-sidebar-hover);
-}
-
-.mobile-navigation {
-  background: var(--color-sidebar-bg);
-}
-
-.mobile-navigation__close {
-  color: var(--color-sidebar-text);
-}
-
-.mobile-navigation__close:hover {
-  background: var(--color-sidebar-hover);
-}
-
-.sidebar--collapsed {
-  width: 64px;
-}
-
-.sidebar__brand {
-  height: 72px;
-}
-
-.sidebar__link--active,
-.sidebar__link--active:hover {
-  background: var(--color-sidebar-active);
-  color: var(--color-sidebar-on-active);
-  font-weight: 500;
-}
-
 .dashboard__title,
 .history__title,
 .analyze__title {
   font-size: 2rem;
   font-weight: 500;
   letter-spacing: -0.045em;
+}
+
+.navbar__link {
+  border-radius: 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid transparent;
+}
+
+.navbar__link--active {
+  border-bottom-color: var(--color-accent);
+}
+
+.home__section-title,
+.home__cta-title,
+.auth-card__title,
+.dashboard-layout__main h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: -0.03em;
+}
+
+.dashboard-layout__main h1 {
+  font-size: clamp(1.9rem, 3vw, 2.5rem);
+}
+
+.home__hero-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+}
+
+.card__header {
+  background: transparent;
+}
+
+.dash-stat,
+.hist-summary-card {
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  background: transparent;
+}
+
+.dropzone {
+  min-height: 300px;
+  justify-content: center;
+  border-color: var(--color-accent);
+}
+
+.home__cta {
+  border-top: 1px solid var(--color-border);
 }
 
 @media (max-width: 1100px) {
@@ -260,28 +250,6 @@ h3 {
 
   .navbar .theme-toggle {
     margin-left: auto;
-  }
-
-  .dashboard-layout__topbar {
-    height: 64px;
-    padding: 0 var(--space-4);
-  }
-
-  .dashboard-layout__topbar > .dashboard-layout__menu-btn {
-    display: flex;
-  }
-
-  .dashboard-layout__workspace-label {
-    display: none;
-  }
-
-  .dashboard-layout__topbar-title {
-    display: block;
-  }
-
-  .sidebar,
-  .sidebar--collapsed {
-    width: 220px;
   }
 
   .dashboard-layout__main {

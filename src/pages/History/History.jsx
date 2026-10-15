@@ -21,7 +21,7 @@ function History() {
             File records saved for your account on this browser.
           </p>
         </div>
-        <Button to="/analyze">Check a video</Button>
+        <Button to="/analyze">Analyze a video</Button>
       </div>
       <label className="search-field">
         Search files

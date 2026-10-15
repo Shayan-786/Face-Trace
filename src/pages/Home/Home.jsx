@@ -144,7 +144,7 @@ function Home() {
         <div className="container home__cta-inner">
           <h2 className="home__cta-title">Explore the frontend</h2>
           <p className="home__cta-body">
-            Create a local preview account and check a video file.
+            Create a local preview account and select a video to analyze.
           </p>
           <Button
             to="/signup"
@@ -154,15 +154,6 @@ function Home() {
           </Button>
         </div>
       </section>
-
-      {/* ── Footer note ───────────────────────────────────── */}
-      <footer className="home__footer">
-        <div className="container">
-          <p className="home__footer-text">
-            © {new Date().getFullYear()} Face Trace &mdash; BSCS Final Year Project
-          </p>
-        </div>
-      </footer>
     </div>
   )
 }

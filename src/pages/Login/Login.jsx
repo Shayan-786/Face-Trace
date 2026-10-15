@@ -1,3 +1,4 @@
+import { validateEmail } from '../../services/validation'
 import { useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ScanFace } from 'lucide-react'
@@ -37,7 +38,7 @@ function Login() {
     }
 
     const nextErrors = {}
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    if (validateEmail(form.email)) {
       nextErrors.email = 'Enter a valid email address.'
     }
     if (!form.password) {

@@ -36,10 +36,20 @@ function ThemeToggle() {
       type="button"
       onClick={toggleTheme}
       aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+      title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
       aria-pressed={theme === 'dark'}
     >
-      {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-      <span>{theme === 'light' ? 'Dark mode' : 'Light mode'}</span>
+      {theme === 'light' ? (
+        <Moon
+          size={20}
+          aria-hidden="true"
+        />
+      ) : (
+        <Sun
+          size={20}
+          aria-hidden="true"
+        />
+      )}
     </button>
   )
 }

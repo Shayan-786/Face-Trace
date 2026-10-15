@@ -1,3 +1,5 @@
+import { Link, useSearchParams } from 'react-router-dom'
+import CredentialForm from './CredentialForm'
 import { useState } from 'react'
 import Card from '../../components/Card/Card'
 import FormField from '../../components/FormField/FormField'
@@ -7,6 +9,10 @@ import { updateProfile } from '../../services/auth'
 
 function Profile() {
   const user = useCurrentUser()
+  const [params] = useSearchParams()
+  const mode = ['email', 'password'].includes(params.get('edit'))
+    ? params.get('edit')
+    : 'username'
   const [username, setUsername] = useState(user?.username || '')
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
@@ -41,29 +47,60 @@ function Profile() {
   return (
     <div className="page-stack account-page">
       <h1>Your account</h1>
-      <Card title="Profile">
-        <form
-          className="auth-form"
-          onSubmit={handleSubmit}
-          noValidate
+      <nav
+        className="action-row"
+        aria-label="Account settings"
+      >
+        <Link
+          to="/profile?edit=username"
+          aria-current={mode === 'username' ? 'page' : undefined}
         >
-          <FormField
-            id="profile-name"
-            label="Username"
-            value={username}
-            onChange={(event) => {
-              setUsername(event.target.value)
-              setSaved(false)
-              setError('')
-            }}
-            maxLength={50}
-            error={error}
-            required
+          Username
+        </Link>
+        <Link
+          to="/profile?edit=email"
+          aria-current={mode === 'email' ? 'page' : undefined}
+        >
+          Email
+        </Link>
+        <Link
+          to="/profile?edit=password"
+          aria-current={mode === 'password' ? 'page' : undefined}
+        >
+          Password
+        </Link>
+      </nav>
+      <Card title={mode === 'username' ? 'Change username' : 'Change ' + mode}>
+        {mode !== 'username' ? (
+          <CredentialForm
+            key={mode}
+            mode={mode}
+            email={user?.email || ''}
           />
-          <p className="muted">Email: {user?.email}</p>
-          <Button type="submit">Save changes</Button>
-          {saved && <p role="status">Profile updated.</p>}
-        </form>
+        ) : (
+          <form
+            className="auth-form"
+            onSubmit={handleSubmit}
+            noValidate
+          >
+            <FormField
+              id="profile-name"
+              label="Username"
+              value={username}
+              onChange={(event) => {
+                setUsername(event.target.value)
+                setSaved(false)
+                setError('')
+              }}
+              maxLength={30}
+              error={error}
+              required
+            />
+            <p className="muted">Email: {user?.email}</p>
+            <Button type="submit">Save changes</Button>
+            {saved && <p role="status">Profile updated.</p>}
+          </form>
+        )}
       </Card>
       <p className="notice">
         Your account is local to this browser. Password recovery and cross-device accounts

@@ -3,6 +3,7 @@ import { ScanFace, Menu, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import ThemeToggle from '../ThemeToggle/ThemeToggle'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
+import ProfileMenu from './ProfileMenu'
 import './Navbar.css'
 
 function Navbar() {
@@ -14,10 +15,10 @@ function Navbar() {
   const links = user
     ? [
         { to: '/', label: 'Home' },
-        {
-          to: user.role === 'admin' ? '/admin' : '/dashboard',
-          label: user.role === 'admin' ? 'Admin panel' : 'Dashboard',
-        },
+        { to: '/dashboard', label: 'Dashboard' },
+        { to: '/analyze', label: 'Analyze Video' },
+        { to: '/history', label: 'History' },
+        ...(user.role === 'admin' ? [{ to: '/admin', label: 'Admin Panel' }] : []),
       ]
     : [
         { to: '/', label: 'Home' },
@@ -35,7 +36,7 @@ function Navbar() {
     }
 
     menuRef.current?.querySelector('a')?.focus()
-    const desktop = window.matchMedia('(min-width: 769px)')
+    const desktop = window.matchMedia('(min-width: 1025px)')
 
     function closeOnDesktop(event) {
       if (event.matches) {
@@ -83,7 +84,7 @@ function Navbar() {
             <NavLink
               key={to}
               to={to}
-              end
+              end={to !== '/history'}
               className={({ isActive }) =>
                 `navbar__link ${isActive ? 'navbar__link--active' : ''}`
               }
@@ -100,15 +101,21 @@ function Navbar() {
           onClick={() => setMenuOpen((open) => !open)}
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={menuOpen}
-          aria-controls="public-mobile-menu"
+          aria-controls="mobile-menu"
         >
           {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
+        {user && (
+          <ProfileMenu
+            user={user}
+            onOpen={() => setMenuOpen(false)}
+          />
+        )}
       </div>
       {menuOpen && (
         <nav
           ref={menuRef}
-          id="public-mobile-menu"
+          id="mobile-menu"
           className="navbar__mobile-menu"
           aria-label="Mobile navigation"
         >
@@ -116,9 +123,11 @@ function Navbar() {
             <NavLink
               key={to}
               to={to}
-              end
+              end={to !== '/history'}
               onClick={() => setMenuOpen(false)}
-              className="navbar__mobile-link"
+              className={({ isActive }) =>
+                `navbar__mobile-link ${isActive ? 'navbar__link--active' : ''}`
+              }
             >
               {label}
             </NavLink>

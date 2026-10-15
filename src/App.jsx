@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import PublicLayout from './layouts/PublicLayout'
 import DashboardLayout from './layouts/DashboardLayout'
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'
+import Terms from './pages/Terms/Terms'
 import Home from './pages/Home/Home'
 import Login from './pages/Login/Login'
 import Register from './pages/Register/Register'
@@ -24,6 +25,10 @@ function App() {
       </a>
       <Routes>
         <Route element={<PublicLayout />}>
+          <Route
+            path="/terms"
+            element={<Terms />}
+          />
           <Route
             path="/"
             element={<Home />}
