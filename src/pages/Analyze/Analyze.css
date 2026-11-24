@@ -27,6 +27,7 @@
   display: none;
 }
 
+/* ── Dropzone ── */
 .dropzone {
   display: flex;
   flex-direction: column;
@@ -54,6 +55,7 @@
   color: var(--color-text-secondary);
 }
 
+/* ── File info card ── */
 .file-info {
   display: flex;
   align-items: center;
@@ -85,14 +87,23 @@
   color: var(--color-text-primary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast);
 }
 
+.file-info__remove:hover {
+  background: var(--color-bg-tertiary);
+}
+
+/* ── Video preview ── */
 .analyze__video {
   width: 100%;
   max-height: 360px;
   background: var(--color-video-bg);
 }
 
+/* ── Error ── */
 .analyze__error {
   padding: var(--space-3) var(--space-4);
   border: 1px solid rgba(var(--color-danger-rgb), 0.3);
@@ -101,6 +112,111 @@
   color: var(--color-danger);
 }
 
+/* ── Assessment sections ── */
+.assessment-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.assessment-sections__heading {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.assessment-section {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.assessment-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.assessment-section__label {
+  font-weight: 600;
+  font-size: var(--text-sm);
+}
+
+.assessment-section__status {
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.assessment-section__status--idle {
+  color: var(--color-text-secondary);
+}
+
+.assessment-section__status--running {
+  color: var(--color-accent);
+}
+
+.assessment-section__status--done {
+  color: var(--color-success);
+}
+
+/* ── Progress bar (animated) ── */
+.assessment-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-bg-tertiary);
+  overflow: hidden;
+}
+
+.assessment-progress__bar {
+  height: 100%;
+  width: 40%;
+  background: var(--color-accent);
+  border-radius: 2px;
+  animation: progress-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* ── Spinner ── */
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Post-completion ── */
+.analyze__post-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.analyze__complete-msg {
+  font-size: var(--text-sm);
+  color: var(--color-success);
+  font-weight: 500;
+}
+
+/* ── Support list ── */
 .support-list {
   display: grid;
   gap: var(--space-4);
@@ -117,6 +233,7 @@
   margin-top: var(--space-1);
 }
 
+/* ── Responsive ── */
 @media (max-width: 1000px) {
   .analyze__layout {
     grid-template-columns: 1fr;

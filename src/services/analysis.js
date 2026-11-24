@@ -78,3 +78,14 @@ export function deleteAnalysis(id) {
     getRecords().filter((record) => record.id !== id || record.ownerId !== user.id),
   )
 }
+
+export function deleteAllAnalysis() {
+  const user = getCurrentUser()
+  if (!user) {
+    throw new Error('Please sign in again.')
+  }
+  writeJson(
+    RECORDS_KEY,
+    getRecords().filter((record) => record.ownerId !== user.id),
+  )
+}
