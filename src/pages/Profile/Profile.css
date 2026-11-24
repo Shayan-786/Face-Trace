@@ -1,0 +1,77 @@
+/* ── Profile photo section ── */
+.profile-photo-section {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.profile-photo-preview {
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-photo-initials {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-on-accent);
+  background: var(--color-accent);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.profile-photo-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-photo-input {
+  display: none;
+}
+
+.profile-photo-hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.profile-photo-error {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid rgba(var(--color-danger-rgb), 0.3);
+  border-radius: var(--radius-md);
+  background: rgba(var(--color-danger-rgb), 0.07);
+}
+
+@media (max-width: 480px) {
+  .profile-photo-section {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .profile-photo-controls {
+    align-items: center;
+    text-align: center;
+  }
+}

@@ -287,6 +287,32 @@ export function requireAdmin() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Profile photo — stored as a base64 data URL per user id
+// ---------------------------------------------------------------------------
+const PHOTO_KEY_PREFIX = 'ft_photo_'
+
+export function getProfilePhoto(userId) {
+  if (!userId) return null
+  return localStorage.getItem(`${PHOTO_KEY_PREFIX}${userId}`) || null
+}
+
+export function saveProfilePhoto(dataUrl) {
+  const user = getCurrentUser()
+  if (!user || user.role === 'admin') {
+    throw new Error('Sign in with a regular account to upload a photo.')
+  }
+  localStorage.setItem(`${PHOTO_KEY_PREFIX}${user.id}`, dataUrl)
+  window.dispatchEvent(new Event('facetrace:storage'))
+}
+
+export function removeProfilePhoto() {
+  const user = getCurrentUser()
+  if (!user || user.role === 'admin') return
+  localStorage.removeItem(`${PHOTO_KEY_PREFIX}${user.id}`)
+  window.dispatchEvent(new Event('facetrace:storage'))
+}
+
 export function getAdminUsers() {
   requireAdmin()
   return getUsers()

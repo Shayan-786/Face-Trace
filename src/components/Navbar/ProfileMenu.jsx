@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { UserCircle } from 'lucide-react'
 import { logout } from '../../services/auth'
+import { useProfilePhoto } from '../../hooks/useProfilePhoto'
 
 export default function ProfileMenu({ user, onOpen }) {
   const [open, setOpen] = useState(false)
@@ -10,8 +10,10 @@ export default function ProfileMenu({ user, onOpen }) {
   const trigger = useRef(null)
   const location = useLocation()
   const navigate = useNavigate()
+  const photo = useProfilePhoto(user?.id)
 
   useEffect(() => setOpen(false), [location.key])
+
   useEffect(() => {
     if (!open) return
     function dismiss(event) {
@@ -40,6 +42,15 @@ export default function ProfileMenu({ user, onOpen }) {
     }
   }
 
+  // Initials fallback
+  const initials = user?.username
+    ? user.username
+        .split(' ')
+        .slice(0, 2)
+        .map((w) => w[0].toUpperCase())
+        .join('')
+    : '?'
+
   return (
     <div
       className="profile-menu"
@@ -60,31 +71,41 @@ export default function ProfileMenu({ user, onOpen }) {
           setOpen(!open)
         }}
       >
-        <UserCircle
-          size={26}
-          aria-hidden="true"
-        />
+        {photo ? (
+          <img
+            src={photo}
+            alt={user?.username ?? 'Profile'}
+            className="profile-menu__avatar"
+          />
+        ) : (
+          <span className="profile-menu__initials" aria-hidden="true">
+            {initials}
+          </span>
+        )}
       </button>
+
       {open && (
-        <div
-          id="account-options"
-          className="profile-menu__panel"
-        >
-          <strong>{user.username}</strong>
-          <span className="muted">{user.email}</span>
-          {user.role === 'admin' ? (
-            <Link to="/profile">Administrator profile</Link>
-          ) : (
-            <>
-              <Link to="/profile?edit=username">Change username</Link>
-              <Link to="/profile?edit=email">Change email</Link>
-              <Link to="/profile?edit=password">Change password</Link>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={handleLogout}
-          >
+        <div id="account-options" className="profile-menu__panel">
+          <div className="profile-menu__info">
+            {photo ? (
+              <img
+                src={photo}
+                alt={user?.username ?? 'Profile'}
+                className="profile-menu__avatar profile-menu__avatar--lg"
+              />
+            ) : (
+              <span className="profile-menu__initials profile-menu__initials--lg" aria-hidden="true">
+                {initials}
+              </span>
+            )}
+            <div>
+              <strong>{user.username}</strong>
+              <span className="muted">{user.email}</span>
+            </div>
+          </div>
+          <hr className="profile-menu__divider" />
+          <Link to="/profile">Manage Profile</Link>
+          <button type="button" onClick={handleLogout}>
             Logout
           </button>
           {error && <p role="alert">{error}</p>}
