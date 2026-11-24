@@ -8,6 +8,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import Button from '../../components/Button/Button'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import './Home.css'
 
 // ── Feature cards data ────────────────────────────────────────
@@ -51,6 +52,8 @@ const FEATURES = [
 ]
 
 function Home() {
+  const user = useCurrentUser()
+
   return (
     <div className="home">
       {/* ── Hero ───────────────────────────────────────────── */}
@@ -73,19 +76,20 @@ function Home() {
           </p>
 
           <div className="home__hero-actions">
-            <Button
-              to="/signup"
-              size="lg"
-            >
-              Get Started <ArrowRight size={18} />
-            </Button>
-            <Button
-              to="/login"
-              variant="secondary"
-              size="lg"
-            >
-              Sign In
-            </Button>
+            {user ? (
+              <Button to="/analyze" size="lg">
+                Analyse a Video <ArrowRight size={18} />
+              </Button>
+            ) : (
+              <>
+                <Button to="/signup" size="lg">
+                  Get Started <ArrowRight size={18} />
+                </Button>
+                <Button to="/login" variant="secondary" size="lg">
+                  Sign In
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Subtle disclaimer — honest about the project scope */}
@@ -146,12 +150,15 @@ function Home() {
           <p className="home__cta-body">
             Create a local preview account and select a video to analyze.
           </p>
-          <Button
-            to="/signup"
-            size="lg"
-          >
-            Sign up <ArrowRight size={18} />
-          </Button>
+          {user ? (
+            <Button to="/analyze" size="lg">
+              Analyse a Video <ArrowRight size={18} />
+            </Button>
+          ) : (
+            <Button to="/signup" size="lg">
+              Sign up <ArrowRight size={18} />
+            </Button>
+          )}
         </div>
       </section>
     </div>
