@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FileVideo, ScanFace, Eye } from 'lucide-react'
+import { FileVideo, Eye } from 'lucide-react'
 import Card from '../../components/Card/Card'
 import Button from '../../components/Button/Button'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
@@ -28,15 +28,6 @@ function Dashboard() {
           <div className="dash-stat__body">
             <span className="dash-stat__value">{records.length}</span>
             <span>Analysed videos</span>
-          </div>
-        </div>
-        <div className="dash-stat">
-          <ScanFace size={22} aria-hidden="true" />
-          <div className="dash-stat__body">
-            <span className="dash-stat__value">
-              {records.length > 0 ? 'Pending' : '—'}
-            </span>
-            <span>Backend integration</span>
           </div>
         </div>
       </section>

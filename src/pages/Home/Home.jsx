@@ -143,24 +143,6 @@ function Home() {
         </div>
       </section>
 
-      {/* ── Call to action ────────────────────────────────── */}
-      <section className="home__cta">
-        <div className="container home__cta-inner">
-          <h2 className="home__cta-title">Explore the frontend</h2>
-          <p className="home__cta-body">
-            Create a local preview account and select a video to analyze.
-          </p>
-          {user ? (
-            <Button to="/dashboard" size="lg">
-              Go to Dashboard <ArrowRight size={18} />
-            </Button>
-          ) : (
-            <Button to="/signup" size="lg">
-              Sign up <ArrowRight size={18} />
-            </Button>
-          )}
-        </div>
-      </section>
     </div>
   )
 }
