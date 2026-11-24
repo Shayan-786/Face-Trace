@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Trash2, Eye, FileVideo } from 'lucide-react'
 import Button from '../../components/Button/Button'
@@ -14,6 +14,16 @@ function History() {
   const [deletingId, setDeletingId] = useState(null)
   const [deletingAll, setDeletingAll] = useState(false)
   const [error, setError] = useState('')
+  const [ready, setReady] = useState(false)
+
+  // Avoid flashing the empty state before the localStorage snapshot is confirmed.
+  const mountedRef = useRef(false)
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true
+      setReady(true)
+    }
+  }, [])
 
   const filtered = records.filter((record) =>
     record.filename.toLowerCase().includes(query.trim().toLowerCase()),
@@ -74,7 +84,9 @@ function History() {
         />
       </label>
 
-      {records.length === 0 ? (
+      {!ready ? (
+        <p className="muted" role="status">Loading records…</p>
+      ) : records.length === 0 ? (
         <div className="history__empty">
           <FileVideo size={40} aria-hidden="true" />
           <h2>No saved records yet</h2>
