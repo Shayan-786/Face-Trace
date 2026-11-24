@@ -2,21 +2,23 @@
 
 Face Trace is a multimedia deepfake detection project developed as a BSCS Final Year Project. Its proposed analysis pipeline combines visual and audio assessment with explainable results.
 
-This repository currently contains the **React frontend prototype**. Users can create local accounts, preview video files, save file-check records, and use separate user and administrator workflows. **AI detection and the backend are not connected yet.**
+This repository currently contains the **React frontend prototype**. Users can create local accounts, upload a profile photo, preview video files, run a local analysis workflow, download a report, and use separate user and administrator workflows. **AI detection and the backend are not connected yet.**
 
 ## Current features
 
-- Responsive public pages and workspace navigation, including a mobile menu.
+- Responsive public pages and workspace navigation with a navbar Analyze Video link; no duplicate buttons on other pages.
 - Charcoal Teal theme with persistent light and dark modes.
-- Sign up, login, logout to the home page, and editable user display names.
+- Sign up, login, logout, and editable user display names.
+- Local profile photo: upload JPEG, PNG, or WebP (max 1 MB), preview before saving, remove at any time; stored in browser localStorage; updates the navbar avatar immediately.
+- Simplified profile menu showing only Manage Profile and Logout; full username, email, and password management on the Manage Profile page.
 - Video selection through browsing or drag and drop.
 - File extension, size, MIME-type, and basic container-header validation.
 - Local playback and duration checks when the browser supports the video codec.
-- Analyze Video page with "Analyze Now" button, local workflow with animated per-section progress, and honest completion status.
-- Three assessment sections on Analyze and Record Details pages: Video Assessment, Visual Assessment, and Audio Assessment.
-- Client-side PDF report download: file metadata and workflow status only; no invented scores or verdicts.
-- Account-specific saved history in a card layout with View Details, Delete, and Delete All Records.
-- Record Details page with file information, workflow status, and structured assessment sections ready for backend data.
+- **Analyze Now** workflow: validates the file, runs a local three-section workflow (Video Assessment, Visual Assessment, Audio Assessment) with animated progress, then shows an honest completed/pending-backend status for each section. No AI prediction, confidence score, or verdict is generated.
+- Client-side PDF report download after workflow completion: contains file name, type, size, duration, date/time, workflow status, all three assessment statuses, and a clear statement that AI prediction, confidence score, and Grad-CAM are unavailable until backend integration.
+- History in a card layout with filename search, View Details and Delete per record, and Delete All Records with confirmation.
+- Record Details page with file information, workflow status, and three assessment sections (Video, Visual, Audio) structured to accept real backend data later.
+- Signed-in home page shows a Go to Dashboard action instead of Sign Up / Sign In buttons.
 - Administrator panel with registered-user totals, saved-video totals, per-user record counts, search, suspension/reactivation, and record review/deletion.
 - Administrator access to video checks and personal history without a second account.
 - Form validation, keyboard-accessible controls, confirmation dialogs, and empty states.
@@ -64,7 +66,7 @@ Open **Sign up** to create an account. Accounts are stored only in the current b
 
 Usernames require 3–30 characters, using letters and optional single spaces between words. Usernames and email addresses must be unique (case-insensitive). New accounts and email changes accept gmail.com, yahoo.com, outlook.com, hotmail.com, and live.com only; this does not verify mailbox ownership. Existing accounts can still sign in with their saved email. Passwords require 8–128 characters with uppercase, lowercase, a number, and a special character. Signup requires agreement to the Terms & Conditions; the accepted version and timestamp are saved with the account.
 
-All pages share a top navbar with responsive mobile navigation and a compact sun/moon theme control. Signed-in navigation includes Dashboard, Analyze Video, History, and a top-right account icon; only administrators see Admin Panel. The account dropdown offers username, email, and password settings plus Logout. Email and password changes require the current password; saved history stays attached to the account. The fixed admin account remains non-editable. Terms & Conditions are linked from the footer on every page.
+All pages share a top navbar with responsive mobile navigation and a compact sun/moon theme control. Signed-in navigation includes Dashboard, Analyze Video, History, and a top-right avatar button; only administrators see Admin Panel. The avatar button opens a dropdown with **Manage Profile** and **Logout** only. The Manage Profile page contains username, email, password, and profile photo settings. Email and password changes require the current password; saved history stays attached to the account. The fixed admin account profile is not editable. Terms & Conditions are linked from the footer on every page.
 
 Regular users see their own dashboard, video checks, history, and account page. They do not see the admin link, and the frontend redirects them away from `/admin`.
 
@@ -98,13 +100,12 @@ The administrator can also permanently delete a user and their associated saved 
 
 A supported extension does not guarantee playback or prove that a file is valid. Basic header validation rejects obvious renamed or invalid files; it is not a complete media-integrity check. When playback is unavailable, the interface allows saving file details with playability unverified. Use a browser-compatible MP4 or WebM for a presentation.
 
-**Analyze Now** runs a local workflow and saves file metadata. After completion, a **Download Report** button generates a client-side PDF containing file details, workflow status, and all three assessment statuses. No AI prediction, confidence score, or heatmap is generated.
-
-**Save file check** has been replaced by the Analyze Now workflow.
+**Analyze Now** runs a local workflow and saves file metadata. Each of the three assessment sections (Video, Visual, Audio) shows animated progress then an honest completed status. After completion, a **Download Report** button generates a client-side PDF containing file details, workflow status, and all three assessment statuses. The PDF clearly states: "AI prediction, confidence score, and Grad-CAM explanation are unavailable until backend model integration." No invented scores, predictions, or verdicts are shown anywhere in the frontend.
 
 ## Data and privacy limitations
 
-- Accounts, the session, theme preference, and saved records use browser localStorage.
+- Accounts, the session, theme preference, saved records, and profile photos use browser localStorage.
+- Profile photos are stored as base64 data URLs under a per-user key. Clearing site data removes them.
 - Data is specific to a browser profile and origin. `localhost:5173` and `127.0.0.1:5173` have separate storage, so use the same address consistently.
 - Clearing site data removes local accounts and history. Data does not sync between devices or browsers.
 - New user passwords are stored as salted PBKDF2-derived hashes, not plaintext. This does not make client-side authentication production-secure.
@@ -122,7 +123,7 @@ A supported extension does not guarantee playback or prove that a file is valid.
 | `/analyze`             | Select, preview, and run a local workflow on a video file |
 | `/history`             | Personal saved records                            |
 | `/history/:analysisId` | Record details with file info and assessment sections     |
-| `/profile`             | User profile; fixed-account information for admin |
+| `/profile`             | Manage Profile: username, email, password, and profile photo |
 | `/admin`               | Administrator management panel                    |
 | `/terms`               | Terms & Conditions and local data practices       |
 
@@ -177,13 +178,14 @@ These are **planned capabilities**, not implemented features in this repository.
 ## Suggested frontend demonstration
 
 1. Create a user through Sign up and log in.
-2. Select a short, compatible video, verify local preview, then click Analyze Now.
-3. Watch the three assessment sections (Video, Visual, Audio) progress and complete.
-4. Download the PDF report and open the record from History.
-5. On the Record Details page, review the honest assessment status for each section.
-6. Demonstrate Delete and Delete All Records from History.
-7. Demonstrate validation with an unsupported or empty file.
-8. Log out, then log in as the administrator to show users and saved-record totals.
-9. Demonstrate the administrator's personal video-check workflow, theme switching, and mobile navigation.
+2. Upload a profile photo from Manage Profile and confirm the navbar avatar updates immediately.
+3. Select a short, compatible video, verify local preview, then click Analyze Now.
+4. Watch the three assessment sections (Video, Visual, Audio) progress and complete.
+5. Download the PDF report and confirm the AI disclaimer is present.
+6. Open the record from History, review the honest assessment status on the Record Details page.
+7. Demonstrate Delete and Delete All Records from History.
+8. Demonstrate file validation with an unsupported or empty file.
+9. Log out, then log in as the administrator to show users and saved-record totals.
+10. Demonstrate the administrator's personal video-check workflow, theme switching, and mobile navigation.
 
 Present this version as a working browser-local frontend prototype. Completion against an academic milestone depends on the assessment rubric; it does not yet demonstrate real deepfake detection.
