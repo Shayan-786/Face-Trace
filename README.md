@@ -12,7 +12,11 @@ This repository currently contains the **React frontend prototype**. Users can c
 - Video selection through browsing or drag and drop.
 - File extension, size, MIME-type, and basic container-header validation.
 - Local playback and duration checks when the browser supports the video codec.
-- Account-specific saved history, filename search, record details, and deletion.
+- Analyze Video page with "Analyze Now" button, local workflow with animated per-section progress, and honest completion status.
+- Three assessment sections on Analyze and Record Details pages: Video Assessment, Visual Assessment, and Audio Assessment.
+- Client-side PDF report download: file metadata and workflow status only; no invented scores or verdicts.
+- Account-specific saved history in a card layout with View Details, Delete, and Delete All Records.
+- Record Details page with file information, workflow status, and structured assessment sections ready for backend data.
 - Administrator panel with registered-user totals, saved-video totals, per-user record counts, search, suspension/reactivation, and record review/deletion.
 - Administrator access to video checks and personal history without a second account.
 - Form validation, keyboard-accessible controls, confirmation dialogs, and empty states.
@@ -94,7 +98,9 @@ The administrator can also permanently delete a user and their associated saved 
 
 A supported extension does not guarantee playback or prove that a file is valid. Basic header validation rejects obvious renamed or invalid files; it is not a complete media-integrity check. When playback is unavailable, the interface allows saving file details with playability unverified. Use a browser-compatible MP4 or WebM for a presentation.
 
-**Save file check** creates a metadata record. It does not analyse authenticity or generate a confidence score, audio verdict, or heatmap.
+**Analyze Now** runs a local workflow and saves file metadata. After completion, a **Download Report** button generates a client-side PDF containing file details, workflow status, and all three assessment statuses. No AI prediction, confidence score, or heatmap is generated.
+
+**Save file check** has been replaced by the Analyze Now workflow.
 
 ## Data and privacy limitations
 
@@ -113,9 +119,9 @@ A supported extension does not guarantee playback or prove that a file is valid.
 | `/signup`              | Create a local account                            |
 | `/login`               | User or administrator sign-in                     |
 | `/dashboard`           | Personal workspace overview                       |
-| `/analyze`             | Select, preview, and check a video file           |
+| `/analyze`             | Select, preview, and run a local workflow on a video file |
 | `/history`             | Personal saved records                            |
-| `/history/:analysisId` | Personal record details                           |
+| `/history/:analysisId` | Record details with file info and assessment sections     |
 | `/profile`             | User profile; fixed-account information for admin |
 | `/admin`               | Administrator management panel                    |
 | `/terms`               | Terms & Conditions and local data practices       |
@@ -171,10 +177,13 @@ These are **planned capabilities**, not implemented features in this repository.
 ## Suggested frontend demonstration
 
 1. Create a user through Sign up and log in.
-2. Select a short, compatible video and show its preview.
-3. Save the file check and open it from History.
-4. Demonstrate validation with an unsupported or empty file.
-5. Log out, then log in as the administrator to show users and saved-record totals.
-6. Demonstrate the administrator's personal video-check workflow, theme switching, and mobile navigation.
+2. Select a short, compatible video, verify local preview, then click Analyze Now.
+3. Watch the three assessment sections (Video, Visual, Audio) progress and complete.
+4. Download the PDF report and open the record from History.
+5. On the Record Details page, review the honest assessment status for each section.
+6. Demonstrate Delete and Delete All Records from History.
+7. Demonstrate validation with an unsupported or empty file.
+8. Log out, then log in as the administrator to show users and saved-record totals.
+9. Demonstrate the administrator's personal video-check workflow, theme switching, and mobile navigation.
 
 Present this version as a working browser-local frontend prototype. Completion against an academic milestone depends on the assessment rubric; it does not yet demonstrate real deepfake detection.
