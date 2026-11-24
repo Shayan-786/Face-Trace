@@ -19,16 +19,7 @@ function Dashboard() {
           <h1 className="dashboard__title">Welcome back, {user?.username}</h1>
           <p className="dashboard__subtitle">Your analysis workspace and saved records.</p>
         </div>
-        <Button to="/analyze">
-          <ScanFace size={17} aria-hidden="true" />
-          Analyse a video
-        </Button>
       </div>
-
-      <p className="notice">
-        AI analysis is not connected yet. Files stay on your device; running the workflow
-        does not generate a prediction or deepfake verdict.
-      </p>
 
       {/* ── Stats ── */}
       <section className="dashboard__stats" aria-label="Workspace statistics">
@@ -60,12 +51,7 @@ function Dashboard() {
         }
       >
         {records.length === 0 ? (
-          <div className="dashboard__empty">
-            <p className="muted">No video records yet. Analyse a video to get started.</p>
-            <Button to="/analyze" variant="secondary">
-              Analyse a video
-            </Button>
-          </div>
+          <p className="muted dashboard__empty-msg">No analysed videos yet.</p>
         ) : (
           <div className="dashboard__recent">
             {recent.map((record) => (

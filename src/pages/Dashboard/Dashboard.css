@@ -47,12 +47,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Empty state ── */
-.dashboard__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-4);
+/* ── Empty message ── */
+.dashboard__empty-msg {
   padding: var(--space-2) 0;
 }
 

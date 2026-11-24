@@ -77,8 +77,8 @@ function Home() {
 
           <div className="home__hero-actions">
             {user ? (
-              <Button to="/analyze" size="lg">
-                Analyse a Video <ArrowRight size={18} />
+              <Button to="/dashboard" size="lg">
+                Go to Dashboard <ArrowRight size={18} />
               </Button>
             ) : (
               <>
@@ -151,8 +151,8 @@ function Home() {
             Create a local preview account and select a video to analyze.
           </p>
           {user ? (
-            <Button to="/analyze" size="lg">
-              Analyse a Video <ArrowRight size={18} />
+            <Button to="/dashboard" size="lg">
+              Go to Dashboard <ArrowRight size={18} />
             </Button>
           ) : (
             <Button to="/signup" size="lg">

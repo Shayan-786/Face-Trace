@@ -61,7 +61,6 @@ function History() {
           </p>
         </div>
         <div className="history__header-actions">
-          <Button to="/analyze">Analyse a video</Button>
           {records.length > 0 && (
             <Button variant="danger" onClick={() => setDeletingAll(true)}>
               Delete All Records
@@ -90,8 +89,7 @@ function History() {
         <div className="history__empty">
           <FileVideo size={40} aria-hidden="true" />
           <h2>No saved records yet</h2>
-          <p>Select a video and run a workflow to save your first record.</p>
-          <Button to="/analyze">Analyse a video</Button>
+          <p>Use Analyse Video in the navigation to run your first workflow.</p>
         </div>
       ) : query.trim() && filtered.length === 0 ? (
         <p className="history__no-results" role="status">
