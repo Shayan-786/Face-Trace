@@ -22,8 +22,7 @@ frame at all produces a face, a VideoServiceError is raised.
 
 import os
 import math
-import tempfile
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -52,10 +51,11 @@ _TRANSFORM = transforms.Compose([
 # Haar cascade (bundled with OpenCV)
 # ---------------------------------------------------------------------------
 _CASCADE_PATH = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-_face_cascade: Optional[cv2.CascadeClassifier] = None
+_face_cascade: Optional[object] = None
 
 
-def _get_cascade() -> cv2.CascadeClassifier:
+def _get_cascade():
+    """Return the shared Haar cascade classifier, loading it on first call."""
     global _face_cascade
     if _face_cascade is None:
         cascade = cv2.CascadeClassifier(_CASCADE_PATH)
