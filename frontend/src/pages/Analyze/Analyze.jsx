@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { UploadCloud, FileVideo, X, Download, CheckCircle, AlertCircle } from 'lucide-react'
 import Button from '../../components/Button/Button'
 import Card from '../../components/Card/Card'
@@ -484,10 +483,10 @@ function Analyze() {
                     Download Report
                   </Button>
                 )}
-                <Link to={`/history/${savedRecord.id}`} className="btn btn--secondary">
+                <Button variant="secondary" to={`/history/${savedRecord.id}`}>
                   View in History
-                </Link>
-                <Button variant="ghost" onClick={clearFile}>
+                </Button>
+                <Button variant="secondary" onClick={clearFile}>
                   Analyse another
                 </Button>
               </div>
@@ -495,44 +494,6 @@ function Analyze() {
           )}
         </div>
 
-        {/* ── Right column ── */}
-        <div className="analyze__right">
-          <Card title={isRunning ? 'Analysing…' : isDone ? 'Analysis complete' : 'Run analysis'}>
-            <div className="action-panel">
-              {workflow === 'idle' && (
-                <>
-                  <p className="muted">
-                    The video is sent to the local Flask backend for EfficientNet-B0 visual analysis.
-                    Nothing is uploaded to external servers.
-                  </p>
-                </>
-              )}
-              {isRunning && (
-                <p className="muted" role="status">
-                  Processing… this may take a few seconds depending on video length.
-                </p>
-              )}
-              {isDone && (
-                <p className="muted" role="status">Analysis complete. See results on the left.</p>
-              )}
-              {isError && (
-                <Button variant="secondary" onClick={() => { setWorkflow('idle'); setError('') }}>
-                  Try again
-                </Button>
-              )}
-            </div>
-          </Card>
-
-          <Card title="File support">
-            <ul className="support-list">
-              <li><strong>Containers</strong><span>{VIDEO_FORMATS}</span></li>
-              <li><strong>Size limit</strong><span>100 MB</span></li>
-              <li><strong>Duration limit</strong><span>5 minutes</span></li>
-              <li><strong>Visual model</strong><span>EfficientNet-B0, 3 classes: Real, Face Replacement, Face Manipulation</span></li>
-              <li><strong>Audio model</strong><span>Not connected — audio status will show as unavailable</span></li>
-            </ul>
-          </Card>
-        </div>
       </div>
     </div>
   )
