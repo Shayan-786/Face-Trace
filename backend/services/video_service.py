@@ -21,6 +21,8 @@ frame at all produces a face, a VideoServiceError is raised.
 """
 
 import os
+import io
+import base64
 import math
 from typing import List, Optional
 
@@ -183,6 +185,7 @@ class VideoService:
             # ── Per-frame processing ──────────────────────────────────────
             all_probs: List[dict] = []
             valid_timestamps: List[float] = []
+            frame_b64_list: List[str] = []
 
             for ts in timestamps:
                 frame = _frame_at(cap, ts)
@@ -197,6 +200,12 @@ class VideoService:
                 result = model_svc.predict(tensor)
                 all_probs.append(result["probabilities"])
                 valid_timestamps.append(round(ts, 2))
+
+                if len(frame_b64_list) < 5:
+                    pil_thumb = Image.fromarray(rgb_crop).resize((224, 224))
+                    buf = io.BytesIO()
+                    pil_thumb.save(buf, format='JPEG', quality=75)
+                    frame_b64_list.append(base64.b64encode(buf.getvalue()).decode('utf-8'))
 
             # ── Require at least one valid face ───────────────────────────
             if not all_probs:
@@ -236,6 +245,7 @@ class VideoService:
                         "visual-model pipeline."
                     ),
                 },
+                "extracted_frames": frame_b64_list,
             }
 
         finally:

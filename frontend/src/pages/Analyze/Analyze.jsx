@@ -81,6 +81,7 @@ function Analyze() {
   const selectionRef = useRef(0)
   const analyzingRef = useRef(false)
   const abortRef = useRef(null)
+  const assessmentRef = useRef(null)
 
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState('')
@@ -199,6 +200,9 @@ function Analyze() {
 
     analyzingRef.current = true
     setWorkflow('running')
+    setTimeout(() => {
+      assessmentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
     setLoadingStep(0)
     setError('')
     setApiResult(null)
@@ -343,6 +347,12 @@ function Analyze() {
             </Card>
           )}
 
+          {workflow === 'idle' && (
+            <Button onClick={runAnalysis} fullWidth disabled={!canAnalyze}>
+              Analyze Now
+            </Button>
+          )}
+
           {mediaState === 'unsupported' && (
             <p className="notice" role="status">
               This browser cannot preview this codec. You can still run the analysis.
@@ -351,7 +361,7 @@ function Analyze() {
 
           {/* ── Loading state ── */}
           {isRunning && (
-            <div className="assessment-sections">
+            <div className="assessment-sections" ref={assessmentRef}>
               <h2 className="assessment-sections__heading">Analysis in progress</h2>
               {LOADING_STEPS.map((step, i) => (
                 <div key={step.key} className="assessment-section">
@@ -423,6 +433,33 @@ function Analyze() {
                   {apiResult.audio.message}
                 </p>
               </div>
+
+              {/* Extracted frames */}
+              {apiResult.extracted_frames?.length > 0 && (
+                <div className="assessment-section">
+                  <div className="assessment-section__header">
+                    <span className="assessment-section__label">Extracted Frames</span>
+                    <span className="assessment-section__status assessment-section__status--done">
+                      <CheckCircle size={14} aria-hidden="true" /> {apiResult.extracted_frames.length} frames
+                    </span>
+                  </div>
+                  <p style={{fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-2)'}}>
+                    Sample frames analysed by the model (cropped and resized to 224×224)
+                  </p>
+                  <div className="extracted-frames">
+                    {apiResult.extracted_frames.map((frame, i) => (
+                      <img
+                        key={i}
+                        src={`data:image/jpeg;base64,${frame}`}
+                        alt={`Extracted frame ${i + 1}`}
+                        className="extracted-frame"
+                        onClick={() => window.open(`data:image/jpeg;base64,${frame}`, '_blank')}
+                        title="Click to view full size"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -462,10 +499,6 @@ function Analyze() {
                     The video is sent to the local Flask backend for EfficientNet-B0 visual analysis.
                     Nothing is uploaded to external servers.
                   </p>
-                  <Button onClick={runAnalysis} fullWidth disabled={!canAnalyze}>
-                    Analyze Now
-                  </Button>
-                  {file && <Button variant="ghost" onClick={clearFile}>Choose another file</Button>}
                 </>
               )}
               {isRunning && (
