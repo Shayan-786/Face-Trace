@@ -201,7 +201,7 @@ class VideoService:
                 all_probs.append(result["probabilities"])
                 valid_timestamps.append(round(ts, 2))
 
-                if len(frame_b64_list) < 5:
+                if True:  # capture every analysed frame
                     pil_thumb = Image.fromarray(rgb_crop).resize((224, 224))
                     buf = io.BytesIO()
                     pil_thumb.save(buf, format='JPEG', quality=75)

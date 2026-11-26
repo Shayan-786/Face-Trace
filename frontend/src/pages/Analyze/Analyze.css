@@ -17,10 +17,12 @@
 }
 
 .analyze__layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-6);
-  align-items: start;
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .analyze__file-input {
@@ -236,7 +238,7 @@
 /* ── Responsive ── */
 @media (max-width: 1000px) {
   .analyze__layout {
-    grid-template-columns: 1fr;
+    max-width: 100%;
   }
 }
 

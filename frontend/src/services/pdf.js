@@ -12,13 +12,10 @@ import { formatBytes, formatDuration } from './media.js'
 /** Escape a string for use inside PDF literal string parens. */
 function escStr(str) {
   return String(str)
+    .replace(/[^\x20-\x7e]/g, '') // strip non-printable / non-ASCII entirely
     .replace(/\\/g, '\\\\')
     .replace(/\(/g, '\\(')
     .replace(/\)/g, '\\)')
-    .replace(/[^\x20-\x7e]/g, (ch) => {
-      const code = ch.codePointAt(0)
-      return code !== undefined ? `\\${code.toString(8).padStart(3, '0')}` : ''
-    })
 }
 
 /** Zero-pad a number to 10 digits for xref table. */
@@ -65,7 +62,7 @@ function buildPdf(lines) {
   ]
 
   // Serialise and record byte offsets
-  const header = '%PDF-1.4\n%\xe2\xe3\xcf\xd3\n' // binary comment keeps viewers happy
+  const header = '%PDF-1.4\n'
   const parts = [header]
   const offsets = []
 
@@ -145,8 +142,7 @@ export function downloadReport(record) {
   }
 
   function rule() {
-    // Simulate a horizontal rule with dashes
-    lines.push({ text: '─'.repeat(72), x: 50, y, size: 8, bold: false })
+    lines.push({ text: '-'.repeat(72), x: 50, y, size: 8, bold: false })
     y += 14
   }
 
@@ -170,7 +166,7 @@ export function downloadReport(record) {
   rule()
   subheading('Workflow Status')
   const hasResult = !!(record.visual && record.visual.class_name)
-  row('Status', hasResult ? 'Analysed — EfficientNet-B0 visual result available' : 'File check only — no analysis result')
+  row('Status', hasResult ? 'Analysed - EfficientNet-B0 visual result available' : 'File check only - no analysis result')
   gap()
 
   // ── Assessment ──
