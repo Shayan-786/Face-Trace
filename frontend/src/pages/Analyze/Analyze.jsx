@@ -200,9 +200,6 @@ function Analyze() {
 
     analyzingRef.current = true
     setWorkflow('running')
-    setTimeout(() => {
-      assessmentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }, 50)
     setLoadingStep(0)
     setError('')
     setApiResult(null)
@@ -267,6 +264,15 @@ function Analyze() {
       abortRef.current = null
     }
   }
+
+  // Scroll to assessment section when analysis starts or results arrive
+  useEffect(() => {
+    if (workflow === 'running' || workflow === 'done') {
+      setTimeout(() => {
+        assessmentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 50)
+    }
+  }, [workflow])
 
   const canAnalyze = !!file && ['ready', 'unsupported'].includes(mediaState) && workflow === 'idle'
   const isRunning = workflow === 'running'
@@ -393,7 +399,7 @@ function Analyze() {
 
           {/* ── Results ── */}
           {isDone && apiResult && (
-            <div className="assessment-sections">
+            <div className="assessment-sections" ref={assessmentRef}>
               <h2 className="assessment-sections__heading">Results</h2>
 
               {/* Video info */}
@@ -440,7 +446,7 @@ function Analyze() {
                   <div className="assessment-section__header">
                     <span className="assessment-section__label">Extracted Frames</span>
                     <span className="assessment-section__status assessment-section__status--done">
-                      <CheckCircle size={14} aria-hidden="true" /> {apiResult.extracted_frames.length} frames
+                      <CheckCircle size={14} aria-hidden="true" /> {apiResult.video.frames_analyzed} frames analysed
                     </span>
                   </div>
                   <p style={{fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginTop: 'var(--space-2)'}}>
