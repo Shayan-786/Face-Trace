@@ -10,47 +10,135 @@ import { downloadReport } from '../../services/pdf'
 import { formatBytes, formatDuration } from '../../services/media'
 import './Results.css'
 
+const CLASS_LABELS = {
+  real: 'Real',
+  face_replacement: 'Face Replacement',
+  face_manipulation: 'Face Manipulation',
+}
+
+const CLASS_COLORS = {
+  real: 'var(--color-success)',
+  face_replacement: 'var(--color-danger)',
+  face_manipulation: 'var(--color-warning)',
+}
+
+function ProbBar({ label, value, highlight }) {
+  return (
+    <div className="prob-row">
+      <span className="prob-row__label">{label}</span>
+      <div className="prob-row__track">
+        <div
+          className="prob-row__fill"
+          style={{ width: `${value}%`, background: highlight ? 'var(--color-accent)' : 'var(--color-border)' }}
+        />
+      </div>
+      <span className="prob-row__value">{Number(value).toFixed(1)}%</span>
+    </div>
+  )
+}
+
 const ASSESSMENT_SECTIONS = [
   {
     key: 'video',
     title: 'Video Assessment',
     description:
-      'Frame-level video analysis checks for spatial and temporal inconsistencies. Requires backend model integration.',
-    placeholder:
-      'No video assessment result available. Backend integration will provide frame-level analysis and consistency checks.',
+      'Frame-level video analysis checks for spatial and temporal inconsistencies.',
   },
   {
     key: 'visual',
     title: 'Visual Assessment',
     description:
-      'EfficientNet-based visual model evaluates facial regions and blending artefacts. Requires backend model integration.',
-    placeholder:
-      'No visual assessment result available. Backend integration will provide model prediction, confidence score, and Grad-CAM explanation.',
+      'EfficientNet-B0 visual model evaluates facial regions and blending artefacts.',
   },
   {
     key: 'audio',
     title: 'Audio Assessment',
     description:
-      'Wav2Vec2-based audio model evaluates speech authenticity and audio-visual sync. Requires backend model integration.',
-    placeholder:
-      'No audio assessment result available. Backend integration will provide speech authenticity and audio-visual sync analysis.',
+      'Wav2Vec2-based audio model evaluates speech authenticity. Not connected.',
   },
 ]
 
-function AssessmentCard({ title, description, placeholder, result }) {
+function AssessmentCard({ sectionKey, title, description, record }) {
+  if (sectionKey === 'visual' && record.visual) {
+    const v = record.visual
+    const label = CLASS_LABELS[v.class_name] ?? v.class_name
+    const color = CLASS_COLORS[v.class_name] ?? 'var(--color-text-primary)'
+    return (
+      <Card title={title}>
+        <div className="assessment-card">
+          <p className="assessment-card__desc muted">{description}</p>
+          <div className="visual-result">
+            <div className="visual-result__verdict" style={{ color }}>
+              <span className="visual-result__class">{label}</span>
+              <span className="visual-result__conf">{Number(v.confidence).toFixed(1)}% confidence</span>
+            </div>
+            <div className="visual-result__probs">
+              {Object.entries(v.probabilities).map(([cls, prob]) => (
+                <ProbBar
+                  key={cls}
+                  label={CLASS_LABELS[cls] ?? cls}
+                  value={prob}
+                  highlight={cls === v.class_name}
+                />
+              ))}
+            </div>
+          </div>
+          {record.videoMeta && (
+            <p className="muted" style={{ fontSize: 'var(--text-sm)', marginTop: 'var(--space-3)' }}>
+              {record.videoMeta.frames_analyzed} of {record.videoMeta.frames_requested} frames analysed
+            </p>
+          )}
+        </div>
+      </Card>
+    )
+  }
+
+  if (sectionKey === 'audio' && record.audio) {
+    return (
+      <Card title={title}>
+        <div className="assessment-card">
+          <p className="assessment-card__desc muted">{description}</p>
+          <span className="badge">{record.audio.message ?? 'Not available'}</span>
+        </div>
+      </Card>
+    )
+  }
+
+  if (sectionKey === 'video' && record.videoMeta) {
+    const vm = record.videoMeta
+    return (
+      <Card title={title}>
+        <div className="assessment-card">
+          <p className="assessment-card__desc muted">{description}</p>
+          <dl className="details-list" style={{ marginTop: 'var(--space-2)' }}>
+            <dt>Duration</dt>
+            <dd>{Number(vm.duration_seconds).toFixed(1)}s</dd>
+            <dt>Frames requested</dt>
+            <dd>{vm.frames_requested}</dd>
+            <dt>Frames analysed</dt>
+            <dd>{vm.frames_analyzed}</dd>
+          </dl>
+        </div>
+      </Card>
+    )
+  }
+
+  // No result yet
+  const placeholders = {
+    video: 'No video metadata available. Run the analysis workflow to populate this section.',
+    visual: 'No visual assessment result available. Run the analysis workflow to generate a prediction.',
+    audio: 'Audio analysis is not implemented in the current pipeline.',
+  }
   return (
     <Card title={title}>
       <div className="assessment-card">
         <p className="assessment-card__desc muted">{description}</p>
-        {result ? (
-          /* Future: render real backend result here */
-          <div className="assessment-card__result">{result}</div>
-        ) : (
-          <div className="assessment-card__pending">
-            <span className="badge">Completed — model result pending backend integration</span>
-            <p className="assessment-card__placeholder muted">{placeholder}</p>
-          </div>
-        )}
+        <div className="assessment-card__pending">
+          <span className="badge">
+            {sectionKey === 'audio' ? 'Not available' : 'Pending analysis'}
+          </span>
+          <p className="assessment-card__placeholder muted">{placeholders[sectionKey]}</p>
+        </div>
       </div>
     </Card>
   )
@@ -108,8 +196,9 @@ function Results() {
       )}
 
       <p className="notice">
-        AI prediction, confidence score, and Grad-CAM explanation are unavailable until
-        backend model integration.
+        {record.visual
+          ? 'Visual analysis result from EfficientNet-B0. Audio analysis and Grad-CAM are not connected.'
+          : 'No analysis result stored. Run Analyze Now to generate a visual prediction.'}
       </p>
 
       {/* ── File details ── */}
@@ -149,24 +238,25 @@ function Results() {
       {/* ── Workflow status ── */}
       <Card title="Workflow Status">
         <div className="results__workflow-status">
-          <span className="badge badge--success">
-            Completed — model result pending backend integration
+          <span className={`badge ${record.visual ? 'badge--success' : ''}`}>
+            {record.visual ? 'Analysed' : 'File check only — no analysis result'}
           </span>
           <p className="muted">
-            The local workflow ran successfully. No AI analysis has been performed; no
-            authenticity conclusion can be made from this record.
+            {record.visual
+              ? 'EfficientNet-B0 visual analysis completed. Audio analysis and Grad-CAM are not implemented.'
+              : 'Only file metadata was saved. Open Analyze Video and run Analyze Now to get a real prediction.'}
           </p>
         </div>
       </Card>
 
       {/* ── Assessment sections ── */}
-      {ASSESSMENT_SECTIONS.map(({ key, title, description, placeholder }) => (
+      {ASSESSMENT_SECTIONS.map(({ key, title, description }) => (
         <AssessmentCard
           key={key}
+          sectionKey={key}
           title={title}
           description={description}
-          placeholder={placeholder}
-          result={record[key] ?? null}
+          record={record}
         />
       ))}
 

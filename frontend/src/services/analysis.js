@@ -62,10 +62,32 @@ export function saveFileCheck(file, duration, previewAvailable) {
     visual: null,
     audio: null,
     confidence: null,
+    videoMeta: null,
   }
 
   writeJson(RECORDS_KEY, [...getRecords(), record])
   return record
+}
+
+export function updateRecordResult(id, apiResult) {
+  const user = getCurrentUser()
+  if (!user) {
+    throw new Error('Please sign in again.')
+  }
+  writeJson(
+    RECORDS_KEY,
+    getRecords().map((record) => {
+      if (record.id !== id || record.ownerId !== user.id) return record
+      return {
+        ...record,
+        status: 'analyzed',
+        visual: apiResult.visual ?? null,
+        audio: apiResult.audio ?? null,
+        confidence: apiResult.visual?.confidence ?? null,
+        videoMeta: apiResult.video ?? null,
+      }
+    }),
+  )
 }
 
 export function deleteAnalysis(id) {
