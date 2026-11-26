@@ -1,191 +1,218 @@
 # Face Trace
 
-Face Trace is a multimedia deepfake detection project developed as a BSCS Final Year Project. Its proposed analysis pipeline combines visual and audio assessment with explainable results.
+Face Trace is a multimedia deepfake detection project developed as a BSCS Final Year Project. The analysis pipeline combines EfficientNet-B0 visual deepfake detection with a React frontend for local account management, video upload, and result display.
 
-This repository currently contains the **React frontend prototype**. Users can create local accounts, upload a profile photo, preview video files, run a local analysis workflow, download a report, and use separate user and administrator workflows. **AI detection and the backend are not connected yet.**
+## Repository structure
 
-## Current features
-
-- Responsive public pages and workspace navigation with a navbar Analyze Video link; no duplicate buttons on other pages.
-- Charcoal Teal theme with persistent light and dark modes.
-- Sign up, login, logout, and editable user display names.
-- Local profile photo: upload JPEG, PNG, or WebP (max 1 MB), preview before saving, remove at any time; stored in browser localStorage; updates the navbar avatar immediately.
-- Simplified profile menu showing only Manage Profile and Logout; full username, email, and password management on the Manage Profile page.
-- Video selection through browsing or drag and drop.
-- File extension, size, MIME-type, and basic container-header validation.
-- Local playback and duration checks when the browser supports the video codec.
-- **Analyze Now** workflow: validates the file, runs a local three-section workflow (Video Assessment, Visual Assessment, Audio Assessment) with animated progress, then shows an honest completed/pending-backend status for each section. No AI prediction, confidence score, or verdict is generated.
-- Client-side PDF report download after workflow completion: contains file name, type, size, duration, date/time, workflow status, all three assessment statuses, and a clear statement that AI prediction, confidence score, and Grad-CAM are unavailable until backend integration.
-- History in a card layout with filename search, View Details and Delete per record, and Delete All Records with confirmation.
-- Record Details page with file information, workflow status, and three assessment sections (Video, Visual, Audio) structured to accept real backend data later.
-- Signed-in home page shows a Go to Dashboard action instead of Sign Up / Sign In buttons.
-- Administrator panel with registered-user totals, saved-video totals, per-user record counts, search, suspension/reactivation, and record review/deletion.
-- Administrator access to video checks and personal history without a second account.
-- Form validation, keyboard-accessible controls, confirmation dialogs, and empty states.
-
-## Technology
-
-| Area                  | Tools                     |
-| --------------------- | ------------------------- |
-| Interface             | React 18, JavaScript, CSS |
-| Development and build | Vite 5                    |
-| Routing               | React Router 6            |
-| Icons                 | Lucide React              |
-| Local persistence     | Browser localStorage      |
-| Code quality          | ESLint, Prettier          |
-| Automated tests       | Node.js test runner       |
-
-## Run locally
-
-Use **Node.js 24** and npm to match the environment used for development and testing.
-
-Open a terminal in the project folder and run:
-
-```sh
-npm ci
-npm run dev
+```text
+Face Trace/
+├── frontend/           React 18 / Vite frontend
+│   ├── src/            Components, pages, services, styles
+│   ├── tests/          Frontend service tests (Node.js test runner)
+│   ├── public/         Static assets
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+├── backend/            Flask visual analysis API
+│   ├── app.py          API entry point (GET /api/health, POST /api/analyze)
+│   ├── config.py       Configuration (paths, CORS, device)
+│   ├── requirements.txt
+│   ├── services/
+│   │   ├── model_service.py   EfficientNet-B0 loader and inference
+│   │   └── video_service.py   Frame sampling, face detection, aggregation
+│   ├── models/         Place model checkpoint here (gitignored)
+│   ├── uploads/        Temporary upload directory (gitignored)
+│   ├── artifacts/      Reserved for future artifacts (gitignored)
+│   └── tests/          Backend tests
+└── README.md
 ```
 
-Open the local URL printed by Vite, usually `http://localhost:5173`. If that port is occupied, Vite may choose another port.
+## Model file
 
-For a consistent address:
+Place the trained checkpoint at:
 
-```sh
+```text
+backend/models/efficientnet_b0_finetuned_best.pth
+```
+
+This file is excluded from Git. The backend will start without it but the `/api/analyze` endpoint will return an error until the checkpoint is present.
+
+## Running locally (two terminals)
+
+### Prerequisites
+
+- **Node.js 24** and npm (frontend)
+- **Python 3.12** and pip (backend)
+- PyTorch and other backend dependencies installed (see below)
+
+---
+
+### Terminal 1 — Flask backend
+
+```cmd
+cd "d:\Face Trace\backend"
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Install PyTorch separately (CPU-only, Windows):
+
+```cmd
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+Start the server:
+
+```cmd
+python app.py
+```
+
+The API will be available at: **http://127.0.0.1:5000**
+
+Health check: http://127.0.0.1:5000/api/health
+
+---
+
+### Terminal 2 — React / Vite frontend
+
+```cmd
+cd "d:\Face Trace\frontend"
+npm ci
 npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-Then open `http://127.0.0.1:5173`. Keep the terminal running while using the app. No backend server, API key, or environment file is required for the current prototype.
+Open: **http://127.0.0.1:5173**
 
-On Windows PowerShell, use `npm.cmd` instead of `npm` if script execution policy blocks npm.
+Keep both terminals running while using the app.
+
+---
+
+## Frontend features
+
+- Responsive public pages and workspace navigation.
+- Charcoal Teal theme with persistent light and dark modes.
+- Sign up, login, logout, and editable user display names.
+- Local profile photo: upload JPEG, PNG, or WebP (max 1 MB), stored in browser localStorage.
+- Simplified profile menu: Manage Profile and Logout only.
+- Video selection via browse or drag and drop.
+- File extension, size, MIME-type, and container-header validation.
+- **Analyze Now** workflow: sends the video to the Flask backend, shows real-time loading states (sampling frames, detecting faces, running model), then displays EfficientNet-B0 visual prediction, confidence, and per-class probabilities.
+- Client-side PDF report download: contains file details, workflow status, and all assessment results.
+- History in a card layout with filename search, View Details, Delete, and Delete All Records.
+- Record Details: file information, visual assessment result (class, confidence, probabilities), audio status (not available), and assessment sections ready for future backend data.
+- Administrator panel with user management, record review, suspension, and deletion.
+
+## Backend API
+
+| Endpoint        | Method | Purpose                                     |
+| --------------- | ------ | ------------------------------------------- |
+| `/api/health`   | GET    | Model load status, device (CPU / CUDA)      |
+| `/api/analyze`  | POST   | Upload a video, receive visual analysis result |
+
+### POST /api/analyze
+
+- Multipart field name: `video`
+- Accepted containers: MP4, AVI, MOV, MKV, WebM
+- Maximum size: 100 MiB
+- Maximum duration: 5 minutes (300 s)
+
+Sample response:
+
+```json
+{
+  "status": "completed",
+  "video": {
+    "duration_seconds": 12.4,
+    "frames_requested": 10,
+    "frames_analyzed": 9,
+    "sample_timestamps_seconds": [0.0, 1.4, 2.7]
+  },
+  "visual": {
+    "class_name": "face_replacement",
+    "confidence": 72.5,
+    "probabilities": {
+      "real": 15.0,
+      "face_replacement": 72.5,
+      "face_manipulation": 12.5
+    }
+  },
+  "audio": {
+    "status": "not_available",
+    "message": "Audio analysis is not implemented in the current visual-model pipeline."
+  }
+}
+```
+
+## Model details
+
+| Property        | Value                                          |
+| --------------- | ---------------------------------------------- |
+| Architecture    | EfficientNet-B0 (torchvision)                  |
+| Classifier head | Dropout(0.2) → Linear(1280 → 3)               |
+| Classes         | real, face_replacement, face_manipulation      |
+| Input size      | 224 × 224 RGB                                  |
+| Normalization   | ImageNet (mean 0.485/0.456/0.406, std 0.229/0.224/0.225) |
+| Face detection  | OpenCV Haar cascade (frontal face)             |
+| Frame sampling  | 10–30 frames evenly distributed across timeline |
+
+## Technology
+
+| Area           | Tools                                         |
+| -------------- | --------------------------------------------- |
+| Frontend       | React 18, Vite 5, React Router 6, Lucide React |
+| Backend        | Flask 3, Flask-CORS                           |
+| Model          | PyTorch, TorchVision EfficientNet-B0          |
+| Video / Vision | OpenCV, Pillow, NumPy                         |
+| Persistence    | Browser localStorage (frontend only)         |
+| Code quality   | ESLint, Prettier (frontend); Python syntax    |
+
+## Frontend development commands
+
+Run these from the `frontend/` directory:
+
+| Command                | Purpose                                            |
+| ---------------------- | -------------------------------------------------- |
+| `npm run dev`          | Start the Vite development server                  |
+| `npm run build`        | Create the production bundle in `frontend/dist/`   |
+| `npm run preview`      | Serve the built bundle locally                     |
+| `npm run lint`         | Check JavaScript and React code                    |
+| `npm test`             | Run frontend service and validation tests          |
+| `npm run format`       | Format frontend files with Prettier                |
 
 ## Accounts and administrator access
 
 ### Regular users
 
-Open **Sign up** to create an account. Accounts are stored only in the current browser. There is no built-in regular-user demo account. Use a test password that you do not use elsewhere.
-
-Usernames require 3–30 characters, using letters and optional single spaces between words. Usernames and email addresses must be unique (case-insensitive). New accounts and email changes accept gmail.com, yahoo.com, outlook.com, hotmail.com, and live.com only; this does not verify mailbox ownership. Existing accounts can still sign in with their saved email. Passwords require 8–128 characters with uppercase, lowercase, a number, and a special character. Signup requires agreement to the Terms & Conditions; the accepted version and timestamp are saved with the account.
-
-All pages share a top navbar with responsive mobile navigation and a compact sun/moon theme control. Signed-in navigation includes Dashboard, Analyze Video, History, and a top-right avatar button; only administrators see Admin Panel. The avatar button opens a dropdown with **Manage Profile** and **Logout** only. The Manage Profile page contains username, email, password, and profile photo settings. Email and password changes require the current password; saved history stays attached to the account. The fixed admin account profile is not editable. Terms & Conditions are linked from the footer on every page.
-
-Regular users see their own dashboard, video checks, history, and account page. They do not see the admin link, and the frontend redirects them away from `/admin`.
+Open **Sign up** to create an account. Accounts are stored only in the current browser. Passwords require 8–128 characters with uppercase, lowercase, a number, and a special character. Signup requires agreement to the Terms & Conditions.
 
 ### Fixed administrator account
-
-Use the normal login page with these temporary credentials:
 
 | Field    | Value                   |
 | -------- | ----------------------- |
 | Email    | `admin@facetrace.local` |
 | Password | `FaceTraceAdmin!2026`   |
 
-The administrator can manage local users and all saved video records, as well as create personal file checks. The fixed admin account is separate from the registered-user count. Its profile is not editable.
+**These are intentionally public prototype credentials** included in the client bundle. The frontend does not implement server-side authentication.
 
-**These credentials are intentionally public prototype credentials.** They are included in the client bundle. Frontend route checks and localStorage sessions are not secure authorization; a backend must enforce authentication and permissions before real deployment.
+## Limitations
 
-Suspending a user prevents normal sign-in and invalidates their local session checks. Their records remain available, and the administrator can reactivate the account.
+- Audio analysis is not implemented. The backend returns `audio.status: "not_available"` for all videos.
+- Grad-CAM explanations are not implemented.
+- No database — analysis results are stored in browser localStorage only.
+- No server-side authentication or user management.
+- The model checkpoint must be placed manually; it is not committed to Git.
+- Face detection uses OpenCV Haar cascade. Low-resolution or non-frontal faces may not be detected.
 
-The administrator can also permanently delete a user and their associated saved records after confirmation, or delete individual records. Other users' records and original video files remain untouched. The fixed administrator account cannot be deleted.
+## Suggested demonstration
 
-## Video support
-
-| Rule                | Current behavior                                               |
-| ------------------- | -------------------------------------------------------------- |
-| Accepted containers | MP4, AVI, MOV, MKV, WebM                                       |
-| Size limit          | 100 MiB, displayed as 100 MB in the interface                  |
-| Duration limit      | 5 minutes when duration can be read                            |
-| Playback            | Depends on the browser and the file's codec                    |
-| Saved data          | File metadata only; the video itself is not stored or uploaded |
-| Detection results   | Not available until backend model integration                  |
-
-A supported extension does not guarantee playback or prove that a file is valid. Basic header validation rejects obvious renamed or invalid files; it is not a complete media-integrity check. When playback is unavailable, the interface allows saving file details with playability unverified. Use a browser-compatible MP4 or WebM for a presentation.
-
-**Analyze Now** runs a local workflow and saves file metadata. Each of the three assessment sections (Video, Visual, Audio) shows animated progress then an honest completed status. After completion, a **Download Report** button generates a client-side PDF containing file details, workflow status, and all three assessment statuses. The PDF clearly states: "AI prediction, confidence score, and Grad-CAM explanation are unavailable until backend model integration." No invented scores, predictions, or verdicts are shown anywhere in the frontend.
-
-## Data and privacy limitations
-
-- Accounts, the session, theme preference, saved records, and profile photos use browser localStorage.
-- Profile photos are stored as base64 data URLs under a per-user key. Clearing site data removes them.
-- Data is specific to a browser profile and origin. `localhost:5173` and `127.0.0.1:5173` have separate storage, so use the same address consistently.
-- Clearing site data removes local accounts and history. Data does not sync between devices or browsers.
-- New user passwords are stored as salted PBKDF2-derived hashes, not plaintext. This does not make client-side authentication production-secure.
-- Browser password managers may autofill the login form. The app initializes its login fields empty.
-- Admin totals represent saved records in this browser, not server uploads or users on other devices.
-
-## Pages
-
-| Route                  | Purpose                                           |
-| ---------------------- | ------------------------------------------------- |
-| `/`                    | Public home page                                  |
-| `/signup`              | Create a local account                            |
-| `/login`               | User or administrator sign-in                     |
-| `/dashboard`           | Personal workspace overview                       |
-| `/analyze`             | Select, preview, and run a local workflow on a video file |
-| `/history`             | Personal saved records                            |
-| `/history/:analysisId` | Record details with file info and assessment sections     |
-| `/profile`             | Manage Profile: username, email, password, and profile photo |
-| `/admin`               | Administrator management panel                    |
-| `/terms`               | Terms & Conditions and local data practices       |
-
-The old `/register` address redirects to `/signup`. Unrecognized routes show a not-found page.
-
-## Project structure
-
-```text
-public/                 Static assets and favicon
-src/
-  components/           Shared controls, navigation, tables, and route guard
-  hooks/                Reactive user and history state
-  layouts/              Public and signed-in page layouts
-  pages/                Home, auth, dashboard, video, history, profile, and admin pages
-  services/             Local authentication, storage, records, and media validation
-  styles/               Theme tokens, shared appearance, and workspace styles
-  App.jsx               Application routes
-  main.jsx              React entry point and theme initialization
-tests/                  Service and validation tests
-```
-
-## Development commands
-
-| Command                | Purpose                                                              |
-| ---------------------- | -------------------------------------------------------------------- |
-| `npm run dev`          | Start the development server                                         |
-| `npm run build`        | Create the production frontend bundle in `dist/`                     |
-| `npm run preview`      | Serve the built bundle locally                                       |
-| `npm run lint`         | Check JavaScript and React code                                      |
-| `npm test`             | Run local authentication, history, admin, and media-validation tests |
-| `npm run format`       | Format project files                                                 |
-| `npm run format:check` | Check formatting without changing files                              |
-
-Tests use isolated in-memory storage and do not modify browser accounts. A successful build verifies frontend compilation, not completion of the detection pipeline.
-
-For static hosting, configure a fallback to `index.html` for application routes so direct visits to paths such as `/history` work.
-
-## Planned backend and AI work
-
-The proposed direction includes:
-
-- A Flask API with server-side authentication, role checks, and account management.
-- Database persistence and actual video upload/storage.
-- Media decoding, frame sampling, and audio extraction.
-- EfficientNet-based visual analysis.
-- Wav2Vec2-based audio assessment.
-- Grad-CAM visual explanations and model-generated results.
-- Model evaluation and integration testing using suitable datasets.
-
-These are **planned capabilities**, not implemented features in this repository. The architecture may be refined during implementation and evaluation.
-
-## Suggested frontend demonstration
-
-1. Create a user through Sign up and log in.
-2. Upload a profile photo from Manage Profile and confirm the navbar avatar updates immediately.
-3. Select a short, compatible video, verify local preview, then click Analyze Now.
-4. Watch the three assessment sections (Video, Visual, Audio) progress and complete.
-5. Download the PDF report and confirm the AI disclaimer is present.
-6. Open the record from History, review the honest assessment status on the Record Details page.
-7. Demonstrate Delete and Delete All Records from History.
-8. Demonstrate file validation with an unsupported or empty file.
-9. Log out, then log in as the administrator to show users and saved-record totals.
-10. Demonstrate the administrator's personal video-check workflow, theme switching, and mobile navigation.
-
-Present this version as a working browser-local frontend prototype. Completion against an academic milestone depends on the assessment rubric; it does not yet demonstrate real deepfake detection.
+1. Start both servers (see Terminal 1 and Terminal 2 above).
+2. Sign up and log in.
+3. Upload a profile photo from Manage Profile.
+4. Go to Analyze Video, select a short compatible video, click Analyze Now.
+5. Watch the real backend states: Sampling frames → Detecting faces → Running model.
+6. View the visual prediction, confidence, and class probabilities.
+7. Download the PDF report.
+8. Open History, view the record details, verify the stored result.
+9. Demonstrate file validation with an unsupported file.
+10. Log in as administrator and review saved records.

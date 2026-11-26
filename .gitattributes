@@ -13,3 +13,9 @@
 *.mp4  binary
 *.avi  binary
 *.mov  binary
+
+# Python model checkpoints — binary, no conversion
+*.pth  binary
+*.pt   binary
+*.bin  binary
+*.ckpt binary

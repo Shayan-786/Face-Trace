@@ -1,17 +1,48 @@
-# Dependencies
+# ── Root level (legacy node_modules from pre-reorganization) ────────────────
 node_modules/
 
-# Build output
-dist/
-dist-ssr/
+# ── Frontend ────────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+frontend/*.local
 
+# ── Backend ─────────────────────────────────────────────────────────────────
+# Python virtualenvs
+backend/venv/
+backend/.venv/
+backend/env/
+
+# Uploaded videos (temp files)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Model checkpoints — never commit weights
+backend/models/*.pth
+backend/models/*.pt
+backend/models/*.bin
+backend/models/*.ckpt
+!backend/models/.gitkeep
+
+# Generated artifacts
+backend/artifacts/*
+!backend/artifacts/.gitkeep
+
+# Python cache
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+*.pyc
+*.pyo
+__pycache__/
+
+# ── Shared ───────────────────────────────────────────────────────────────────
 # Environment variables — never commit secrets
 .env
 .env.local
 .env.*.local
-
-# Vite local cache
-*.local
 
 # Editor directories
 .vscode/
@@ -31,6 +62,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Generated output and temp files
+# Previously generated output / temp folders
 output/
 tmp/
+.vite/

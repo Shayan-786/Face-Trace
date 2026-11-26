@@ -1,0 +1,12 @@
+# Face Trace backend dependencies
+# Install with: pip install -r requirements.txt
+#
+# PyTorch: install separately via https://pytorch.org/get-started/locally/
+# For CPU-only Windows (Python 3.12):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+flask>=3.0,<4
+flask-cors>=4.0,<5
+opencv-python>=4.9,<5
+pillow>=10.0
+numpy>=1.26
